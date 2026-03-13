@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Tenant ───────────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?
+  plan      String   @default("free") // free | starter | growth | enterprise
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users        User[]
+  employees    Employee[]
+  saasApps     SaasApp[]
+  integrations Integration[]
+  contracts    Contract[]
+  spendRecords SpendRecord[]
+  offboardings Offboarding[]
+  alerts       Alert[]
+  invites      Invite[]
+}
+
+// ─── Users & Auth ─────────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         String   @default("member") // owner | admin | member
+  avatarUrl    String?
+  orgId        String
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  offboardingsCreated Offboarding[] @relation("CreatedBy")
+}
+
+// ─── People ───────────────────────────────────────────────────────────────────
+
+model Employee {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  jobTitle    String?
+  department  String?
+  status      String    @default("active") // active | offboarded | on_leave
+  startDate   DateTime?
+  endDate     DateTime?
+  managerId   String?   // self-referential (future use)
+  externalId  String?   // ID from HRIS sync
+  avatarUrl   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  appAccess   AppAccess[]
+  offboarding Offboarding?
+
+  @@unique([orgId, email])
+}
+
+// ─── SaaS Stack ───────────────────────────────────────────────────────────────
+
+model SaasApp {
+  id             String   @id @default(cuid())
+  orgId          String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name           String
+  vendor         String?
+  // communication | design | dev | productivity | hr | finance | security | analytics | other
+  category       String   @default("other")
+  logoUrl        String?
+  website        String?
+  monthlySpend   Float    @default(0)
+  annualSpend    Float    @default(0)
+  totalSeats     Int      @default(0)
+  activeSeats    Int      @default(0)
+  // manual | google_workspace | okta | azure_ad | bank_feed | email_receipt
+  source         String   @default("manual")
+  // active | flagged | cancelled | under_review | zombie
+  status         String   @default("active")
+  notes          String?
+  lastDetectedAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  contract     Contract?
+  appAccess    AppAccess[]
+  usageLogs    UsageLog[]
+  spendRecords SpendRecord[]
+
+  @@unique([orgId, name])
+}
+
+model AppAccess {
+  id          String    @id @default(cuid())
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  appId       String
+  app         SaasApp   @relation(fields: [appId], references: [id], onDelete: Cascade)
+  role        String?   // admin | user | viewer
+  lastLoginAt DateTime?
+  loginCount  Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([employeeId, appId])
+}
+
+model UsageLog {
+  id        String   @id @default(cuid())
+  appId     String
+  app       SaasApp  @relation(fields: [appId], references: [id], onDelete: Cascade)
+  date      DateTime
+  dau       Int      @default(0)
+  mau       Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([appId, date])
+}
+
+// ─── Integrations (Data Sources) ──────────────────────────────────────────────
+
+model Integration {
+  id         String    @id @default(cuid())
+  orgId      String
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // google_workspace | okta | azure_ad | plaid | csv | hris_workday | hris_rippling
+  type       String
+  name       String
+  // pending | connected | error | disconnected | syncing
+  status     String    @default("pending")
+  config     String?   // JSON (encrypt in prod)
+  lastSyncAt DateTime?
+  lastError  String?
+  syncCount  Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([orgId, type])
+}
+
+// ─── Contracts ────────────────────────────────────────────────────────────────
+
+model Contract {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  appId       String       @unique
+  app         SaasApp      @relation(fields: [appId], references: [id], onDelete: Cascade)
+  vendor      String
+  value       Float    // total contract value
+  billingCycle String  @default("annual") // monthly | annual | multi_year
+  startDate   DateTime
+  renewalDate DateTime
+  autoRenews  Boolean  @default(true)
+  noticeDays  Int      @default(30)
+  terms       String?  // raw text or URL
+  fileUrl     String?
+  // active | expired | cancelled | negotiating
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Spend ────────────────────────────────────────────────────────────────────
+
+model SpendRecord {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  appId       String?
+  app         SaasApp? @relation(fields: [appId], references: [id])
+  amount      Float
+  currency    String   @default("USD")
+  date        DateTime
+  description String?
+  // bank_feed | invoice | manual | credit_card
+  source      String   @default("manual")
+  category    String?
+  isRecurring Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// ─── Offboarding ──────────────────────────────────────────────────────────────
+
+model Offboarding {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  employeeId  String    @unique
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  createdById String
+  createdBy   User      @relation("CreatedBy", fields: [createdById], references: [id])
+  // pending | in_progress | completed | failed
+  status      String    @default("pending")
+  steps       String    // JSON: OffboardingStep[]
+  completedAt DateTime?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Alerts ───────────────────────────────────────────────────────────────────
+
+model Alert {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  // zombie_app | renewal_upcoming | redundancy | budget_exceeded | shadow_it | unused_seats
+  type      String
+  severity  String   @default("info") // info | warning | critical
+  title     String
+  body      String
+  appId     String?
+  metadata  String?  // JSON
+  isRead    Boolean  @default(false)
+  isDismissed Boolean @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Invites ──────────────────────────────────────────────────────────────────
+
+model Invite {
+  id        String   @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  email     String
+  role      String   @default("member")
+  token     String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, email])
+}

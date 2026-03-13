@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Custom scrollbar ──────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1c2028; border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: #2a3040; }
+
+/* ─── Base ──────────────────────────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #070809;
+  color: #e8ecf0;
+  font-family: var(--font-dm-sans), sans-serif;
+}
+
+/* ─── Utility layers ────────────────────────────────────────────────────────── */
+@layer components {
+  /* Cards */
+  .card {
+    @apply bg-surface border border-border rounded-lg;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  .card-elevated {
+    @apply bg-elevated border border-border rounded-lg;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.5);
+  }
+
+  /* Stat display numbers */
+  .stat-number {
+    @apply font-mono text-primary;
+    font-feature-settings: "tnum" 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Accent glow on focus */
+  .focus-accent:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px #070809, 0 0 0 4px rgba(0,217,126,0.5);
+  }
+
+  /* Status dot */
+  .status-dot {
+    @apply inline-block w-2 h-2 rounded-full flex-shrink-0;
+  }
+  .status-dot-green  { @apply bg-accent shadow-glow-sm; }
+  .status-dot-red    { @apply bg-danger; }
+  .status-dot-yellow { @apply bg-warning; }
+  .status-dot-gray   { @apply bg-muted; }
+
+  /* Sidebar nav items */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded text-secondary text-sm
+           transition-all duration-150 cursor-pointer select-none;
+  }
+  .nav-item:hover {
+    @apply bg-elevated text-primary;
+  }
+  .nav-item.active {
+    @apply bg-accent-dim text-accent;
+  }
+
+  /* Table */
+  .data-table { @apply w-full text-sm; }
+  .data-table thead tr { @apply border-b border-border; }
+  .data-table thead th {
+    @apply text-left py-3 px-4 text-xs font-medium text-secondary uppercase tracking-wider;
+  }
+  .data-table tbody tr {
+    @apply border-b border-subtle transition-colors;
+  }
+  .data-table tbody tr:hover { @apply bg-elevated; }
+  .data-table tbody td { @apply py-3.5 px-4 text-secondary; }
+
+  /* Utilization bar */
+  .util-bar {
+    @apply h-1 rounded-full bg-border overflow-hidden;
+  }
+  .util-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+}
+
+/* ─── Animations ────────────────────────────────────────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, #0c0e10 25%, #121518 50%, #0c0e10 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* ─── Recharts overrides ────────────────────────────────────────────────────── */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: #121518 !important;
+  border: 1px solid #1c2028 !important;
+  border-radius: 6px !important;
+  color: #e8ecf0 !important;
+}
+.recharts-cartesian-axis-tick-value {
+  fill: #4a5568 !important;
+  font-size: 11px !important;
+}
