@@ -3,7 +3,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2, AlertCircle, Clock, RefreshCw,
-  Upload, ExternalLink, Plug, Lock, ChevronDown,
+  Upload, ExternalLink, Plug, ChevronDown,
   FileText, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -441,22 +441,6 @@ function IntegrationCard({
               </ul>
             </div>
 
-            {/* Env keys required */}
-            {"envKeys" in integration && integration.envKeys && !isConnected && (
-              <div className="p-3 rounded bg-elevated border border-border">
-                <div className="flex items-center gap-2 mb-2">
-                  <Lock className="w-3 h-3 text-muted" />
-                  <span className="text-2xs text-muted uppercase tracking-wider font-semibold">Required in .env</span>
-                </div>
-                <div className="space-y-1">
-                  {integration.envKeys.map((key) => (
-                    <div key={key} className="font-mono text-xs text-secondary">
-                      {key}=<span className="text-muted">your_key_here</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {"docsHint" in integration && integration.docsHint && (
               <p className="text-xs text-secondary flex items-start gap-1.5">

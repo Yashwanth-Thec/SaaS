@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, AppWindow, Users, FileText,
   Plug, AlertTriangle, Settings, LogOut,
-  Zap, TrendingDown, Shield, Brain,
+  Zap, TrendingDown, Shield, Brain, ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +30,12 @@ const NAV = [
       { href: "/offboarding",  icon: Users,           label: "Offboarding"    },
       { href: "/contracts",    icon: FileText,        label: "Contracts"      },
       { href: "/integrations", icon: Plug,            label: "Integrations"   },
+    ],
+  },
+  {
+    section: "Compliance",
+    items: [
+      { href: "/compliance",   icon: ShieldCheck,     label: "Compliance"     },
     ],
   },
   {

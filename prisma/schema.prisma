@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -19,15 +19,16 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users        User[]
-  employees    Employee[]
-  saasApps     SaasApp[]
-  integrations Integration[]
-  contracts    Contract[]
-  spendRecords SpendRecord[]
-  offboardings Offboarding[]
-  alerts       Alert[]
-  invites      Invite[]
+  users            User[]
+  employees        Employee[]
+  saasApps         SaasApp[]
+  integrations     Integration[]
+  contracts        Contract[]
+  spendRecords     SpendRecord[]
+  offboardings     Offboarding[]
+  alerts           Alert[]
+  invites          Invite[]
+  outreachContacts OutreachContact[]
 }
 
 // ─── Users & Auth ─────────────────────────────────────────────────────────────
@@ -231,6 +232,32 @@ model Alert {
   isRead    Boolean  @default(false)
   isDismissed Boolean @default(false)
   createdAt DateTime @default(now())
+}
+
+// ─── Outreach ─────────────────────────────────────────────────────────────────
+
+model OutreachContact {
+  id          String   @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  title       String?
+  company     String
+  linkedinUrl String
+  description String?
+  // Enriched contact info
+  email       String?
+  phone       String?
+  website     String?
+  twitterUrl  String?
+  enrichedAt  DateTime?
+  // new | contacted | replied | no_reply | not_relevant
+  status      String   @default("new")
+  notes       String?
+  discoveredAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([orgId, linkedinUrl])
 }
 
 // ─── Invites ──────────────────────────────────────────────────────────────────

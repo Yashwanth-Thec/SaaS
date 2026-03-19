@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -49,6 +49,9 @@ type Tab = typeof TABS[number];
 
 export function AppDetailClient({ app: initialApp }: { app: App }) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const [app, setApp]   = useState(initialApp);
   const [tab, setTab]   = useState<Tab>("Overview");
   const [saving, setSaving]   = useState(false);
@@ -336,33 +339,37 @@ export function AppDetailClient({ app: initialApp }: { app: App }) {
               <span className="font-mono text-xs text-muted">{formatCurrency(app.monthlySpend)}/mo avg</span>
             </CardHeader>
             <CardBody className="pt-0">
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={spendData} margin={{ left: -10, right: 4 }}>
-                  <defs>
-                    <linearGradient id="spendGradDetail" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%"   stopColor={catColor} stopOpacity={0.25} />
-                      <stop offset="100%" stopColor={catColor} stopOpacity={0}    />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
-                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    content={({ active, payload, label }) =>
-                      active && payload?.length ? (
-                        <div className="bg-elevated border border-border rounded px-3 py-2 text-xs shadow-card">
-                          <div className="text-muted mb-1">{label}</div>
-                          <div className="font-mono font-bold text-primary">{formatCurrency(payload[0].value as number)}</div>
-                        </div>
-                      ) : null
-                    }
-                  />
-                  <Area type="monotone" dataKey="amount" stroke={catColor} strokeWidth={2}
-                    fill="url(#spendGradDetail)" dot={false}
-                    activeDot={{ r: 4, fill: catColor, stroke: "#070809", strokeWidth: 2 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={spendData} margin={{ left: -10, right: 4 }}>
+                    <defs>
+                      <linearGradient id="spendGradDetail" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%"   stopColor={catColor} stopOpacity={0.25} />
+                        <stop offset="100%" stopColor={catColor} stopOpacity={0}    />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
+                      tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                    <Tooltip
+                      content={({ active, payload, label }) =>
+                        active && payload?.length ? (
+                          <div className="bg-elevated border border-border rounded px-3 py-2 text-xs shadow-card">
+                            <div className="text-muted mb-1">{label}</div>
+                            <div className="font-mono font-bold text-primary">{formatCurrency(payload[0].value as number)}</div>
+                          </div>
+                        ) : null
+                      }
+                    />
+                    <Area type="monotone" dataKey="amount" stroke={catColor} strokeWidth={2}
+                      fill="url(#spendGradDetail)" dot={false}
+                      activeDot={{ r: 4, fill: catColor, stroke: "#070809", strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ height: 200 }} />
+              )}
             </CardBody>
           </Card>
         </div>

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, TrendingDown, Zap, Lock } from "lucide-react";
@@ -22,10 +22,10 @@ export default function LoginPage() {
   const [tickerIdx, setTickerIdx] = useState(0);
 
   // Rotate ticker every 3s
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => setTickerIdx((i) => (i + 1) % SAVINGS_TICKER.length), 3000);
     return () => clearInterval(id);
-  });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

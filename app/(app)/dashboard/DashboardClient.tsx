@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
@@ -119,6 +120,9 @@ function SpendTooltip({ active, payload, label }: {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export function DashboardClient({ data }: { data: DashboardData }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const isDemo = !data.hasData;
 
   const spend    = isDemo ? 53400 : data.totalMonthlySpend;
@@ -203,26 +207,30 @@ export function DashboardClient({ data }: { data: DashboardData }) {
             <span className="text-xs text-muted font-mono">{formatCurrency(spend)}/mo current</span>
           </CardHeader>
           <CardBody className="pt-0">
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={timeline} margin={{ left: -10, right: 4 }}>
-                <defs>
-                  <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%"   stopColor="#00d97e" stopOpacity={0.25} />
-                    <stop offset="100%" stopColor="#00d97e" stopOpacity={0}    />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                <Tooltip content={<SpendTooltip />} />
-                <Area
-                  type="monotone" dataKey="total"
-                  stroke="#00d97e" strokeWidth={2}
-                  fill="url(#spendGrad)"
-                  dot={false} activeDot={{ r: 4, fill: "#00d97e", stroke: "#070809", strokeWidth: 2 }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={timeline} margin={{ left: -10, right: 4 }}>
+                  <defs>
+                    <linearGradient id="spendGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%"   stopColor="#00d97e" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#00d97e" stopOpacity={0}    />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <Tooltip content={<SpendTooltip />} />
+                  <Area
+                    type="monotone" dataKey="total"
+                    stroke="#00d97e" strokeWidth={2}
+                    fill="url(#spendGrad)"
+                    dot={false} activeDot={{ r: 4, fill: "#00d97e", stroke: "#070809", strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: 180 }} />
+            )}
           </CardBody>
         </Card>
 
@@ -233,8 +241,8 @@ export function DashboardClient({ data }: { data: DashboardData }) {
           </CardHeader>
           <CardBody className="pt-0">
             <div className="flex items-center justify-center mb-3">
-              <ResponsiveContainer width={120} height={120}>
-                <PieChart>
+              {mounted ? (
+                <PieChart width={120} height={120}>
                   <Pie
                     data={categoryData} cx="50%" cy="50%"
                     innerRadius={34} outerRadius={54}
@@ -248,7 +256,9 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                     ))}
                   </Pie>
                 </PieChart>
-              </ResponsiveContainer>
+              ) : (
+                <div style={{ width: 120, height: 120 }} />
+              )}
             </div>
             <div className="space-y-2">
               {categoryData.slice(0, 5).map((c) => (

@@ -62,12 +62,22 @@ const config: Config = {
           "90%":  { transform: "translateY(0)",    opacity: "1" },
           "100%": { transform: "translateY(-100%)",opacity: "0" },
         },
+        marquee: {
+          "0%":   { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%":      { transform: "translateY(-8px)" },
+        },
       },
       animation: {
         "fade-in":    "fade-in 0.4s ease both",
         "slide-in":   "slide-in 0.3s ease both",
         "pulse-slow": "pulse 3s ease-in-out infinite",
         ticker:       "ticker 3s ease-in-out infinite",
+        marquee:      "marquee 30s linear infinite",
+        float:        "float 6s ease-in-out infinite",
       },
     },
   },

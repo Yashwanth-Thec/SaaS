@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis,
@@ -27,6 +28,9 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export function SpendClient({ timeline, categoryData, topApps, totalMonthly, momChange }: Props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const isUp = momChange > 0;
 
   return (
@@ -67,24 +71,28 @@ export function SpendClient({ timeline, categoryData, topApps, totalMonthly, mom
           <span className="text-xs text-muted font-mono">{formatCurrency(totalMonthly)}/mo current</span>
         </CardHeader>
         <CardBody className="pt-0">
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={timeline} margin={{ left: -10, right: 4 }}>
-              <defs>
-                <linearGradient id="spendGradSpend" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%"   stopColor="#00d97e" stopOpacity={0.25} />
-                  <stop offset="100%" stopColor="#00d97e" stopOpacity={0}    />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-              <Tooltip content={<CustomTooltip />} />
-              <Area type="monotone" dataKey="total" stroke="#00d97e" strokeWidth={2}
-                fill="url(#spendGradSpend)" dot={false}
-                activeDot={{ r: 4, fill: "#00d97e", stroke: "#070809", strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={timeline} margin={{ left: -10, right: 4 }}>
+                <defs>
+                  <linearGradient id="spendGradSpend" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"   stopColor="#00d97e" stopOpacity={0.25} />
+                    <stop offset="100%" stopColor="#00d97e" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="label" tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: "#4a5568", fontSize: 11 }} axisLine={false} tickLine={false}
+                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area type="monotone" dataKey="total" stroke="#00d97e" strokeWidth={2}
+                  fill="url(#spendGradSpend)" dot={false}
+                  activeDot={{ r: 4, fill: "#00d97e", stroke: "#070809", strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: 200 }} />
+          )}
         </CardBody>
       </Card>
 
@@ -94,19 +102,23 @@ export function SpendClient({ timeline, categoryData, topApps, totalMonthly, mom
         <Card className="xl:col-span-2">
           <CardHeader><CardTitle>By Category</CardTitle></CardHeader>
           <CardBody className="pt-0">
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={categoryData} layout="vertical" margin={{ left: 8, right: 8 }}>
-                <XAxis type="number" tick={{ fill: "#4a5568", fontSize: 10 }} axisLine={false} tickLine={false}
-                  tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="name" tick={{ fill: "#8892a0", fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" radius={[0, 3, 3, 0]}>
-                  {categoryData.map((entry) => (
-                    <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as AppCategory] ?? "#4a5568"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={categoryData} layout="vertical" margin={{ left: 8, right: 8 }}>
+                  <XAxis type="number" tick={{ fill: "#4a5568", fontSize: 10 }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <YAxis type="category" dataKey="name" tick={{ fill: "#8892a0", fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="value" radius={[0, 3, 3, 0]}>
+                    {categoryData.map((entry) => (
+                      <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as AppCategory] ?? "#4a5568"} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: 220 }} />
+            )}
           </CardBody>
         </Card>
 

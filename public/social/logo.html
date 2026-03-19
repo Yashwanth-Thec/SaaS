@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 400px;
+    height: 400px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .logo-wrap {
+    width: 400px;
+    height: 400px;
+    background: #070809;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle grid */
+  .logo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,217,126,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,217,126,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    border-radius: 50%;
+  }
+
+  /* Glow ring */
+  .logo-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,217,126,0.15);
+  }
+
+  .icon-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Hex icon representing a scrub/clean badge */
+  .icon-ring {
+    width: 110px;
+    height: 110px;
+    border-radius: 28px;
+    background: linear-gradient(135deg, rgba(0,217,126,0.12) 0%, rgba(0,217,126,0.04) 100%);
+    border: 1.5px solid rgba(0,217,126,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0,217,126,0.12), inset 0 0 20px rgba(0,217,126,0.04);
+  }
+
+  .letter-s {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 68px;
+    color: #00d97e;
+    line-height: 1;
+    letter-spacing: -2px;
+    text-shadow: 0 0 30px rgba(0,217,126,0.5);
+  }
+
+  /* Small sparkle dots */
+  .dot {
+    position: absolute;
+    background: #00d97e;
+    border-radius: 50%;
+    opacity: 0.7;
+  }
+  .dot-1 { width: 5px; height: 5px; top: 12px; right: 14px; opacity: 0.9; box-shadow: 0 0 6px rgba(0,217,126,0.8); }
+  .dot-2 { width: 3px; height: 3px; bottom: 16px; left: 18px; opacity: 0.6; }
+
+  .wordmark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    color: #e8ecf0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-top: 14px;
+  }
+
+  .wordmark span {
+    color: #00d97e;
+  }
+
+  .tagline {
+    font-family: 'Syne', sans-serif;
+    font-size: 9px;
+    letter-spacing: 3.5px;
+    text-transform: uppercase;
+    color: rgba(232,236,240,0.35);
+    margin-top: 3px;
+  }
+</style>
+</head>
+<body>
+  <div class="logo-wrap">
+    <div class="icon-container">
+      <div class="icon-ring">
+        <span class="letter-s">S</span>
+        <div class="dot dot-1"></div>
+        <div class="dot dot-2"></div>
+      </div>
+      <div class="wordmark">SaaS<span>-</span>Scrub</div>
+      <div class="tagline">Kill zombie apps</div>
+    </div>
+  </div>
+</body>
+</html>

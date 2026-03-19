@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SaaS-Scrub — Investor Deck</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+<style>
+@page { size: 1280px 720px; margin: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --base:#070809; --surface:#0c0e10; --elevated:#121518; --border:#1c2028;
+  --primary:#e8ecf0; --secondary:#8892a0; --muted:#4a5568;
+  --accent:#00d97e; --danger:#ff4757; --warning:#ffb142; --info:#2ed9ff;
+}
+html, body { background: var(--base); font-family: 'DM Sans', sans-serif; color: var(--primary); -webkit-font-smoothing: antialiased; }
+h1,h2,h3 { font-family: 'Syne', sans-serif; }
+h1 { font-weight: 800; line-height: 1.03; }
+h2 { font-weight: 700; line-height: 1.08; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+.slide {
+  width: 1280px; height: 720px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 40px 80px; position: relative;
+  page-break-after: always; break-after: page;
+  background: var(--base);
+}
+.slide::before {
+  content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+  background-image: linear-gradient(rgba(0,217,126,0.02) 1px,transparent 1px),
+                    linear-gradient(90deg,rgba(0,217,126,0.02) 1px,transparent 1px);
+  background-size: 60px 60px;
+}
+.inner { width:100%; max-width:980px; position:relative; z-index:1; }
+.orb { position:absolute; border-radius:50%; pointer-events:none; }
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent) 0%, #00f090 50%, #2ed9ff 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.badge {
+  display:inline-flex; align-items:center; gap:6px;
+  border:1px solid rgba(0,217,126,0.25); border-radius:100px;
+  padding:5px 14px; font-size:10px; font-weight:600; color:var(--accent);
+  letter-spacing:.06em; text-transform:uppercase; margin-bottom:18px;
+  background:rgba(0,217,126,0.06);
+}
+.badge::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--accent); display:inline-block; }
+.divider { width:36px; height:3px; border-radius:2px; margin:14px 0; background:linear-gradient(90deg,var(--accent),transparent); }
+.card {
+  background:rgba(12,14,16,0.8); border:1px solid var(--border);
+  border-radius:12px; box-shadow:0 4px 24px rgba(0,0,0,0.5);
+}
+.card-glow { border-color:rgba(0,217,126,0.4)!important; box-shadow:0 0 0 1px rgba(0,217,126,0.1),0 4px 32px rgba(0,0,0,0.5),0 0 40px rgba(0,217,126,0.08)!important; }
+.card-border {
+  position:relative; background:var(--surface); border-radius:12px;
+  background-clip:padding-box;
+  border:1px solid rgba(0,217,126,0.35);
+  box-shadow:0 0 0 1px rgba(46,217,255,0.1), 0 4px 24px rgba(0,0,0,0.5);
+}
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; }
+.grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; width:100%; }
+.grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; width:100%; }
+.stat-val { font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); }
+.bar-bg { background:var(--border); border-radius:4px; height:5px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent),#00f090); }
+.logo { display:flex; align-items:center; gap:10px; }
+.logo-icon { width:38px; height:38px; border-radius:10px; background:var(--accent); display:flex; align-items:center; justify-content:center; box-shadow:0 0 20px rgba(0,217,126,0.35); }
+.logo-text { font-family:'Syne',sans-serif; font-weight:700; font-size:18px; }
+.hero-stat { text-align:center; }
+.hero-stat .val { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:38px; color:var(--accent); line-height:1; }
+.hero-stat .lbl { font-size:11px; color:var(--muted); margin-top:5px; }
+.glow-line { height:1px; background:linear-gradient(90deg,transparent,rgba(0,217,126,0.4),transparent); margin:0 auto; }
+.comp-table { width:100%; border-collapse:collapse; font-size:12px; }
+.comp-table th { text-align:left; padding:8px 10px; color:var(--muted); font-size:9px; text-transform:uppercase; letter-spacing:.07em; border-bottom:1px solid var(--border); }
+.comp-table td { padding:9px 10px; color:var(--secondary); border-bottom:1px solid rgba(28,32,40,0.5); }
+.comp-table tr.us td { color:var(--primary); background:rgba(0,217,126,0.04); }
+.comp-table tr.us td:first-child { border-left:2px solid var(--accent); }
+.check { color:var(--accent); font-weight:700; }
+.cross { color:var(--muted); }
+.timeline { display:flex; gap:0; width:100%; }
+.tl-item { flex:1; padding:16px 16px 16px 20px; border-left:2px solid var(--border); position:relative; }
+.tl-item.done { border-color:var(--accent); }
+.tl-item.now  { border-color:var(--warning); }
+.tl-dot { width:10px; height:10px; border-radius:50%; position:absolute; left:-6px; top:18px; background:var(--border); }
+.tl-item.done .tl-dot { background:var(--accent); box-shadow:0 0 10px rgba(0,217,126,0.6); }
+.tl-item.now  .tl-dot { background:var(--warning); box-shadow:0 0 10px rgba(255,177,66,0.6); }
+.tag { display:inline-block; font-size:10px; padding:4px 10px; border-radius:6px; background:var(--elevated); border:1px solid var(--border); color:var(--secondary); }
+.milestone-row { display:flex; gap:10px; align-items:baseline; padding:8px 0; border-bottom:1px solid rgba(28,32,40,0.5); }
+.milestone-row:last-child { border-bottom:none; }
+</style>
+</head>
+<body>
+
+<!-- ══ 01 COVER ══ -->
+<div class="slide" id="s1">
+  <div class="orb" style="width:600px;height:600px;background:radial-gradient(circle,rgba(0,217,126,0.07),transparent 70%);top:-150px;left:-100px;"></div>
+  <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(46,217,255,0.05),transparent 70%);bottom:-80px;right:0;"></div>
+  <div class="inner" style="text-align:center;">
+    <div class="logo" style="justify-content:center;margin-bottom:40px;">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#070809" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <span class="logo-text">SaaS-Scrub</span>
+    </div>
+    <div class="badge">Seed Round · 2026</div>
+    <h1 style="font-size:72px;max-width:760px;margin:0 auto 20px;">The money hiding in your<br/><span class="gradient-text">SaaS stack</span></h1>
+    <p style="font-size:16px;color:var(--secondary);max-width:520px;margin:0 auto 44px;line-height:1.75;">Autonomous SaaS management for mid-market companies.<br/>We find the waste. We eliminate it. You keep the savings.</p>
+    <div style="display:flex;align-items:center;justify-content:center;gap:48px;padding:28px;background:rgba(12,14,16,0.6);border:1px solid var(--border);border-radius:16px;max-width:560px;margin:0 auto 36px;">
+      <div class="hero-stat"><div class="val">$6,200/mo</div><div class="lbl">avg monthly savings</div></div>
+      <div style="width:1px;height:40px;background:var(--border);"></div>
+      <div class="hero-stat"><div class="val">14×</div><div class="lbl">avg ROI in 30 days</div></div>
+      <div style="width:1px;height:40px;background:var(--border);"></div>
+      <div class="hero-stat"><div class="val">30%</div><div class="lbl">of SaaS budget wasted</div></div>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(12,14,16,0.7);border:1px solid var(--border);border-radius:10px;padding:10px 18px;">
+      <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:block;"></span>
+      <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Live Demo</span>
+      <span style="font-size:13px;color:var(--secondary);">saas-scrub.vercel.app · admin@acmecorp.io / demo1234</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 02 PROBLEM ══ -->
+<div class="slide" id="s2">
+  <div class="orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(255,71,87,0.06),transparent 70%);bottom:-100px;right:-100px;"></div>
+  <div class="inner">
+    <div class="badge">The Problem</div>
+    <h2 style="font-size:44px;margin-bottom:8px;">Mid-market companies are <span style="color:var(--danger);">bleeding money</span><br/>on software nobody uses</h2>
+    <div class="divider"></div>
+    <div class="grid3" style="margin-top:22px;">
+      <div class="card" style="padding:22px;">
+        <div style="font-size:10px;color:var(--danger);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">💸 Waste Rate</div>
+        <div class="stat-val" style="font-size:46px;">30%</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.65;">of annual SaaS spend wasted on unused seats, zombie apps &amp; redundant tools</p>
+        <div style="margin-top:14px;font-size:10px;color:var(--muted);">Source: Zylo 2025</div>
+      </div>
+      <div class="card" style="padding:22px;">
+        <div style="font-size:10px;color:var(--warning);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">😴 Unused Licenses</div>
+        <div class="stat-val" style="font-size:46px;color:var(--warning);">53%</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.65;">of licenses go unused in any 30-day period — companies pay full price for half their stack</p>
+        <div style="margin-top:14px;font-size:10px;color:var(--muted);">Source: BetterCloud 2025</div>
+      </div>
+      <div class="card" style="padding:22px;">
+        <div style="font-size:10px;color:var(--info);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">📅 Missed Renewals</div>
+        <div class="stat-val" style="font-size:46px;color:var(--info);">$200K+</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.65;">lost per missed auto-renewal — 40% of companies still track renewals on a spreadsheet</p>
+        <div style="margin-top:14px;font-size:10px;color:var(--muted);">Source: Vertice 2025</div>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 22px;margin-top:14px;display:flex;gap:28px;align-items:center;">
+      <div style="flex:1;font-size:13px;color:var(--secondary);line-height:1.75;">A <strong style="color:var(--primary);">300-person company spending $500K/yr on SaaS</strong> is silently wasting <strong style="color:var(--danger);">$150,000 every year</strong> — and has no single platform to find it. IT doesn't own it. Finance can't see it. Nobody's accountable.</div>
+      <div style="text-align:center;min-width:100px;padding:14px;background:var(--elevated);border-radius:10px;border:1px solid var(--border);">
+        <div class="stat-val" style="font-size:34px;color:var(--danger);">96</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:5px;line-height:1.4;">avg apps per 300-person company</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 03 SOLUTION ══ -->
+<div class="slide" id="s3">
+  <div class="orb" style="width:450px;height:450px;background:radial-gradient(circle,rgba(0,217,126,0.06),transparent 70%);top:-80px;right:-80px;"></div>
+  <div class="inner">
+    <div class="badge">The Solution</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">SaaS-Scrub: the <span class="gradient-text">autonomous SaaS ops platform</span><br/>for mid-market IT &amp; finance teams</h2>
+    <div class="divider"></div>
+    <p style="font-size:13px;color:var(--secondary);margin-bottom:20px;">Connect once. Discover every subscription, surface every dollar wasted, eliminate it — automatically.</p>
+    <div class="grid4">
+      <div class="card" style="padding:18px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(255,71,87,0.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+          <svg width="17" height="17" fill="none" stroke="#ff4757" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3 style="font-size:13px;margin-bottom:6px;">Zombie Detection</h3>
+        <p style="font-size:11px;color:var(--secondary);line-height:1.6;">Surfaces apps with zero logins in 30+ days. Cancel before the next renewal.</p>
+        <div style="margin-top:12px;font-size:10px;color:var(--danger);font-weight:600;">avg 6 zombie apps found</div>
+      </div>
+      <div class="card" style="padding:18px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(46,217,255,0.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+          <svg width="17" height="17" fill="none" stroke="#2ed9ff" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 009 9"/></svg>
+        </div>
+        <h3 style="font-size:13px;margin-bottom:6px;">AI Redundancy</h3>
+        <p style="font-size:11px;color:var(--secondary);line-height:1.6;">Flags overlapping tools — Jira + Asana + Monday in the same org is money on fire.</p>
+        <div style="margin-top:12px;font-size:10px;color:var(--info);font-weight:600;">avg $3,200/mo recovered</div>
+      </div>
+      <div class="card" style="padding:18px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(255,177,66,0.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+          <svg width="17" height="17" fill="none" stroke="#ffb142" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <h3 style="font-size:13px;margin-bottom:6px;">Auto Offboarding</h3>
+        <p style="font-size:11px;color:var(--secondary);line-height:1.6;">Employee leaves? Auto-checklist: revoke access, transfer data, cancel licenses.</p>
+        <div style="margin-top:12px;font-size:10px;color:var(--warning);font-weight:600;">saves 4.5 hrs per offboard</div>
+      </div>
+      <div class="card card-glow" style="padding:18px;">
+        <div style="width:34px;height:34px;border-radius:8px;background:rgba(0,217,126,0.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px;">
+          <svg width="17" height="17" fill="none" stroke="#00d97e" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <h3 style="font-size:13px;margin-bottom:6px;">Renewal Calendar</h3>
+        <p style="font-size:11px;color:var(--secondary);line-height:1.6;">30/7/1-day renewal alerts. Never lose $200K+ to a missed auto-renewal.</p>
+        <div style="margin-top:12px;font-size:10px;color:var(--accent);font-weight:600;">100% of renewals tracked</div>
+      </div>
+    </div>
+    <div class="card" style="padding:14px 20px;margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <span style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Integrations</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">Google Workspace</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">Plaid Bank Feed</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">Okta</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">Azure AD</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">Rippling</span>
+        <span style="color:var(--border);">·</span><span style="font-size:12px;color:var(--secondary);">CSV Import</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 04 MARKET ══ -->
+<div class="slide" id="s4">
+  <div class="orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(46,217,255,0.05),transparent 70%);top:-100px;left:-100px;"></div>
+  <div class="inner">
+    <div class="badge">Market Opportunity</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">A <span class="gradient-text">$4B+ market</span> that enterprise vendors ignore</h2>
+    <div class="divider"></div>
+    <div class="grid3" style="margin-top:22px;">
+      <div class="card" style="padding:24px;text-align:center;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">TAM</div>
+        <div class="stat-val" style="font-size:48px;">$4.2B</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.6;">Global SaaS management platform market (2026)</p>
+        <div class="glow-line" style="width:60%;margin-top:14px;"></div>
+      </div>
+      <div class="card-border" style="padding:24px;text-align:center;">
+        <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">SAM — Our Focus</div>
+        <div class="stat-val" style="font-size:48px;">$1.1B</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.6;">US mid-market companies, 100–1,000 employees</p>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);">~50,000 companies × $1,800–$3,600/yr</div>
+      </div>
+      <div class="card" style="padding:24px;text-align:center;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">SOM — Year 3</div>
+        <div class="stat-val" style="font-size:48px;">$54M</div>
+        <p style="font-size:12px;color:var(--secondary);margin-top:10px;line-height:1.6;">1,500 Growth customers + Enterprise accounts</p>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted);">~3% of SAM — conservative</div>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 22px;margin-top:14px;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:14px;">Why the market is wide open right now</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div><div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:4px;">Enterprise tools start at $50K/yr</div><div style="font-size:12px;color:var(--secondary);">Zylo, Torii &amp; BetterCloud price mid-market out of the category entirely</div></div>
+        <div><div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:4px;">50,000+ companies on spreadsheets</div><div style="font-size:12px;color:var(--secondary);">No dedicated SaaS ops tool exists for mid-market — they are unserved today</div></div>
+        <div><div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:4px;">Pain is acute &amp; measurable</div><div style="font-size:12px;color:var(--secondary);">Average 300-person company wastes $150K/yr — ROI story writes itself</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 05 BUSINESS MODEL ══ -->
+<div class="slide" id="s5">
+  <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(0,217,126,0.07),transparent 70%);bottom:-80px;left:50%;transform:translateX(-50%);"></div>
+  <div class="inner">
+    <div class="badge">Business Model</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">Three tiers. <span class="gradient-text">Self-funding at Enterprise.</span></h2>
+    <div class="divider"></div>
+    <div class="grid3" style="margin-top:22px;">
+      <div class="card" style="padding:24px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">Starter</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px;"><span class="mono" style="font-size:44px;font-weight:700;color:var(--primary);">$0</span><span style="font-size:12px;color:var(--muted);">/month</span></div>
+        <p style="font-size:12px;color:var(--secondary);line-height:1.6;margin-bottom:18px;">Up to 10 apps, manual entry. PLG funnel entry with low CAC.</p>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">✓</span>Up to 10 apps</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">✓</span>Renewal alerts</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">✓</span>Basic dashboard</div>
+        </div>
+      </div>
+      <div class="card-border" style="padding:24px;position:relative;">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--accent);color:#070809;font-size:9px;font-weight:700;padding:3px 12px;border-radius:100px;white-space:nowrap;">PRIMARY REVENUE</div>
+        <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">Growth</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px;"><span class="mono" style="font-size:44px;font-weight:700;color:var(--accent);">$299</span><span style="font-size:12px;color:var(--muted);">/month</span></div>
+        <p style="font-size:12px;color:var(--secondary);line-height:1.6;margin-bottom:18px;">Unlimited apps, all integrations, AI analysis. Pays for itself in week one.</p>
+        <div style="padding:10px;background:rgba(0,217,126,0.05);border:1px solid rgba(0,217,126,0.15);border-radius:8px;font-size:11px;color:var(--secondary);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span>ARR per customer</span><span class="mono" style="color:var(--accent);">$3,588</span></div>
+          <div style="display:flex;justify-content:space-between;"><span>Gross margin</span><span class="mono" style="color:var(--accent);">&gt;90%</span></div>
+        </div>
+      </div>
+      <div class="card" style="padding:24px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;">Enterprise</div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px;"><span class="mono" style="font-size:44px;font-weight:700;color:var(--primary);">20%</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">of first-year savings</div>
+        <p style="font-size:12px;color:var(--secondary);line-height:1.6;margin-bottom:16px;">Outcome-based. Customer pays nothing until we prove savings.</p>
+        <div style="font-size:11px;color:var(--secondary);padding:8px;background:var(--elevated);border-radius:6px;">Example: $500K waste found → <span style="color:var(--accent);">$100K contract</span>. Customer nets $400K yr 1.</div>
+      </div>
+    </div>
+    <div class="card" style="padding:16px 22px;margin-top:12px;display:flex;gap:0;justify-content:center;">
+      <div style="text-align:center;padding:0 28px;"><div class="stat-val" style="font-size:26px;">$3,588</div><div style="font-size:10px;color:var(--muted);margin-top:4px;">ARR per Growth customer</div></div>
+      <div style="width:1px;background:var(--border);"></div>
+      <div style="text-align:center;padding:0 28px;"><div class="stat-val" style="font-size:26px;">90%+</div><div style="font-size:10px;color:var(--muted);margin-top:4px;">target gross margin</div></div>
+      <div style="width:1px;background:var(--border);"></div>
+      <div style="text-align:center;padding:0 28px;"><div class="stat-val" style="font-size:26px;">14×</div><div style="font-size:10px;color:var(--muted);margin-top:4px;">avg customer ROI in 30 days</div></div>
+      <div style="width:1px;background:var(--border);"></div>
+      <div style="text-align:center;padding:0 28px;"><div class="stat-val" style="font-size:26px;">&lt;30d</div><div style="font-size:10px;color:var(--muted);margin-top:4px;">time to first savings found</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 06 ICP & GTM ══ -->
+<div class="slide" id="s6">
+  <div class="inner">
+    <div class="badge">ICP &amp; Go-to-Market</div>
+    <h2 style="font-size:38px;margin-bottom:8px;">Precision targeting: <span class="gradient-text">mid-market companies in pain</span></h2>
+    <div class="divider"></div>
+    <div class="grid2" style="margin-top:20px;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Ideal Customer Profile</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div style="padding:8px;background:var(--elevated);border-radius:6px;"><div style="font-size:9px;color:var(--muted);margin-bottom:3px;">EMPLOYEES</div><div style="font-size:13px;color:var(--primary);font-weight:600;">150–500</div></div>
+            <div style="padding:8px;background:var(--elevated);border-radius:6px;"><div style="font-size:9px;color:var(--muted);margin-bottom:3px;">REVENUE</div><div style="font-size:13px;color:var(--primary);font-weight:600;">$10M–$250M</div></div>
+            <div style="padding:8px;background:var(--elevated);border-radius:6px;"><div style="font-size:9px;color:var(--muted);margin-bottom:3px;">SAAS SPEND</div><div style="font-size:13px;color:var(--primary);font-weight:600;">$200K–$2M/yr</div></div>
+            <div style="padding:8px;background:var(--elevated);border-radius:6px;"><div style="font-size:9px;color:var(--muted);margin-bottom:3px;">STAGE</div><div style="font-size:13px;color:var(--primary);font-weight:600;">Series A–C / PE</div></div>
+          </div>
+        </div>
+        <div class="card" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Top Verticals</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--secondary);width:130px;flex-shrink:0;">Tech / SaaS</span><div class="bar-bg" style="flex:1;"><div class="bar-fill" style="width:95%;"></div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--secondary);width:130px;flex-shrink:0;">Professional Services</span><div class="bar-bg" style="flex:1;"><div class="bar-fill" style="width:82%;"></div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--secondary);width:130px;flex-shrink:0;">Fintech</span><div class="bar-bg" style="flex:1;"><div class="bar-fill" style="width:75%;"></div></div></div>
+            <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:12px;color:var(--secondary);width:130px;flex-shrink:0;">Health Tech</span><div class="bar-bg" style="flex:1;"><div class="bar-fill" style="width:65%;"></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card" style="padding:18px;flex:1;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Buyer Personas</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="padding:10px;background:var(--elevated);border-radius:8px;border-left:2px solid var(--accent);">
+              <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:3px;">IT Director / VP of IT</div>
+              <div style="font-size:11px;color:var(--secondary);">Wants visibility, security, offboarding automation. "I manage apps I didn't approve."</div>
+            </div>
+            <div style="padding:10px;background:var(--elevated);border-radius:8px;border-left:2px solid var(--warning);">
+              <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:3px;">CFO / VP Finance</div>
+              <div style="font-size:11px;color:var(--secondary);">Owns OpEx. 20% Enterprise model resonates — zero risk, pay on results.</div>
+            </div>
+            <div style="padding:10px;background:var(--elevated);border-radius:8px;border-left:2px solid var(--info);">
+              <div style="font-size:12px;color:var(--primary);font-weight:600;margin-bottom:3px;">Ops / BizOps Manager</div>
+              <div style="font-size:11px;color:var(--secondary);">Owns the spreadsheet today. Becomes internal champion.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:16px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">Buy-Now Triggers</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;">
+            <span class="tag">Recent layoff / RIF</span><span class="tag">New CFO hired</span><span class="tag">Series B/C closed</span>
+            <span class="tag">Failed SOC 2 audit</span><span class="tag">Q4 budget planning</span><span class="tag">Post-M&amp;A consolidation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 07 COMPETITION ══ -->
+<div class="slide" id="s7">
+  <div class="orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(0,217,126,0.05),transparent 70%);top:50%;right:-100px;transform:translateY(-50%);"></div>
+  <div class="inner">
+    <div class="badge">Competitive Landscape</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">Enterprise tools ignore mid-market.<br/><span class="gradient-text">We own the gap.</span></h2>
+    <div class="divider"></div>
+    <div class="card" style="margin-top:22px;overflow:hidden;">
+      <table class="comp-table">
+        <thead><tr><th>Platform</th><th>Pricing</th><th>Target</th><th>Auto-Offboard</th><th>AI Redundancy</th><th>Bank Feed</th><th>Mid-Market</th></tr></thead>
+        <tbody>
+          <tr class="us"><td><strong style="color:var(--accent);">⚡ SaaS-Scrub</strong></td><td><span style="color:var(--accent);">$299/mo or 20%</span></td><td>150–500 employees</td><td class="check">✓ Built-in</td><td class="check">✓ AI-powered</td><td class="check">✓ Plaid</td><td class="check">✓ Purpose-built</td></tr>
+          <tr><td>Zylo</td><td style="color:var(--muted);">$50K–$200K/yr</td><td>Enterprise 1,000+</td><td class="cross">✗</td><td style="color:var(--warning);">△ Basic</td><td class="cross">✗</td><td class="cross">✗ Priced out</td></tr>
+          <tr><td>Torii</td><td style="color:var(--muted);">$25K+/yr</td><td>Mid-enterprise</td><td style="color:var(--warning);">△ Limited</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗ Too expensive</td></tr>
+          <tr><td>BetterCloud</td><td style="color:var(--muted);">$30K+/yr</td><td>Enterprise IT</td><td class="check">✓</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗ Wrong segment</td></tr>
+          <tr><td>Spreadsheet</td><td style="color:var(--muted);">$0 + 40 hrs/mo</td><td>Everyone today</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗</td><td class="cross">✗ Manual &amp; broken</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card card-glow" style="padding:16px 20px;margin-top:14px;display:flex;gap:16px;align-items:center;">
+      <div style="width:32px;height:32px;border-radius:8px;background:rgba(0,217,126,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="16" height="16" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div style="font-size:13px;color:var(--secondary);line-height:1.65;"><strong style="color:var(--primary);">Our moat:</strong> Only platform purpose-built for 150–500 employee companies at a price point that delivers immediate ROI. Enterprise competitors start at <strong style="color:var(--danger);">14–66× our price</strong> and require 3–6 month implementations. <strong style="color:var(--accent);">We deploy in 5 minutes.</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 08 TRACTION ══ -->
+<div class="slide" id="s8">
+  <div class="orb" style="width:450px;height:450px;background:radial-gradient(circle,rgba(0,217,126,0.06),transparent 70%);top:-100px;left:50%;transform:translateX(-50%);"></div>
+  <div class="inner">
+    <div class="badge">Traction &amp; Validation</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">Product built. <span class="gradient-text">Market validated.</span> Ready to sell.</h2>
+    <div class="divider"></div>
+    <div class="grid2" style="margin-top:20px;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:14px;">Product Milestones</div>
+          <div class="timeline">
+            <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:9px;color:var(--accent);margin-bottom:5px;font-weight:600;">✓ DONE</div><div style="font-size:12px;color:var(--primary);font-weight:600;">Core Platform</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">Dashboard, AI redundancy, offboarding, spend analytics, alerts</div></div>
+            <div class="tl-item done"><div class="tl-dot"></div><div style="font-size:9px;color:var(--accent);margin-bottom:5px;font-weight:600;">✓ DONE</div><div style="font-size:12px;color:var(--primary);font-weight:600;">Integrations</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">Google Workspace, Plaid bank feed, CSV import</div></div>
+            <div class="tl-item now"><div class="tl-dot"></div><div style="font-size:9px;color:var(--warning);margin-bottom:5px;font-weight:600;">→ NOW</div><div style="font-size:12px;color:var(--primary);font-weight:600;">GTM Launch</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">Outbound to 25 ICP accounts, first pilot customers</div></div>
+          </div>
+        </div>
+        <div class="card card-glow" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Demo Proof Point — Acme Corp</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px;background:rgba(255,71,87,0.06);border:1px solid rgba(255,71,87,0.15);border-radius:6px;"><span style="font-size:11px;color:var(--secondary);">Zombie apps found</span><span class="mono" style="font-size:11px;color:var(--danger);">3 apps · $6,500/mo</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px;background:rgba(255,177,66,0.06);border:1px solid rgba(255,177,66,0.15);border-radius:6px;"><span style="font-size:11px;color:var(--secondary);">Redundant tool groups</span><span class="mono" style="font-size:11px;color:var(--warning);">2 groups · $3,300/mo</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:7px;background:rgba(0,217,126,0.06);border:1px solid rgba(0,217,126,0.15);border-radius:6px;"><span style="font-size:11px;color:var(--secondary);">Unused seats</span><span class="mono" style="font-size:11px;color:var(--accent);">247 seats · $31,380/mo</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:18px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:14px;">Market Validation</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;"></div><div style="font-size:12px;color:var(--secondary);">25 target companies identified with verified CFO / IT Director contacts across Tech, Fintech &amp; Professional Services</div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;"></div><div style="font-size:12px;color:var(--secondary);">Zero mid-market SaaS management solution exists at &lt;$500/mo — validated through competitor pricing research</div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;"></div><div style="font-size:12px;color:var(--secondary);">Full-featured MVP deployed with Acme Corp demo showing <strong style="color:var(--accent);">$41,180/mo in discoverable waste</strong> across 12 apps</div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;"></div><div style="font-size:12px;color:var(--secondary);">Interactive ROI calculator on landing page shows 14× return — self-qualifying lead tool live</div></div>
+          <div style="display:flex;gap:10px;align-items:flex-start;"><div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0;"></div><div style="font-size:12px;color:var(--secondary);">SaaS management market growing at 19.5% CAGR — timing is optimal</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 09 ROADMAP ══ -->
+<div class="slide" id="s9">
+  <div class="inner">
+    <div class="badge">Roadmap</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">From MVP to <span class="gradient-text">category leader</span></h2>
+    <div class="divider"></div>
+    <div class="grid3" style="margin-top:22px;">
+      <div class="card" style="padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Phase 1 · Now</div><span style="font-size:9px;background:rgba(0,217,126,0.1);border:1px solid rgba(0,217,126,0.2);color:var(--accent);padding:3px 8px;border-radius:4px;">Q1–Q2 2026</span></div>
+        <div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:12px;">GTM &amp; First Revenue</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">→</span>Outbound to 25 ICP accounts</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">→</span>10 paying Growth customers</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">→</span>Slack notifications</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">→</span>Contracts page &amp; renewals</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--accent);">→</span>SOC 2 compliance export</div>
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--border);"><div style="font-size:10px;color:var(--muted);">Target MRR</div><div class="stat-val" style="font-size:22px;margin-top:3px;">$2,990</div></div>
+      </div>
+      <div class="card" style="padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Phase 2 · Scale</div><span style="font-size:9px;background:rgba(255,177,66,0.1);border:1px solid rgba(255,177,66,0.2);color:var(--warning);padding:3px 8px;border-radius:4px;">Q3–Q4 2026</span></div>
+        <div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:12px;">Channel &amp; Integrations</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--warning);">→</span>Okta + Azure AD integrations</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--warning);">→</span>Rippling HRIS integration</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--warning);">→</span>Partner channel (IT consultants)</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--warning);">→</span>First 3 Enterprise accounts</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--warning);">→</span>Multi-user roles &amp; SSO</div>
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--border);"><div style="font-size:10px;color:var(--muted);">Target MRR</div><div class="stat-val" style="font-size:22px;color:var(--warning);margin-top:3px;">$29,900</div></div>
+      </div>
+      <div class="card" style="padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;">Phase 3 · Lead</div><span style="font-size:9px;background:rgba(46,217,255,0.1);border:1px solid rgba(46,217,255,0.2);color:var(--info);padding:3px 8px;border-radius:4px;">2027</span></div>
+        <div style="font-size:13px;color:var(--primary);font-weight:600;margin-bottom:12px;">Category Definition</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--info);">→</span>AI budget forecasting</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--info);">→</span>Vendor negotiation automation</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--info);">→</span>SaaS benchmarking database</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--info);">→</span>500+ Growth customers</div>
+          <div style="font-size:11px;color:var(--secondary);display:flex;gap:7px;"><span style="color:var(--info);">→</span>Series A raise</div>
+        </div>
+        <div style="padding-top:14px;border-top:1px solid var(--border);"><div style="font-size:10px;color:var(--muted);">Target ARR</div><div class="stat-val" style="font-size:22px;color:var(--info);margin-top:3px;">$1.8M+</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 10 THE ASK ══ -->
+<div class="slide" id="s10">
+  <div class="orb" style="width:600px;height:600px;background:radial-gradient(circle,rgba(0,217,126,0.07),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);"></div>
+  <div class="inner">
+    <div class="badge">The Ask</div>
+    <h2 style="font-size:40px;margin-bottom:8px;">Raising <span class="gradient-text">$750K seed</span> to reach first $10K MRR</h2>
+    <div class="divider"></div>
+    <div class="grid2" style="margin-top:22px;">
+      <div class="card-border" style="padding:22px;">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:16px;">Use of Funds — $750,000</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--secondary);">Founder salary (18 mo)</span><span class="mono" style="font-size:12px;color:var(--accent);">22% · $162K</span></div><div class="bar-bg"><div class="bar-fill" style="width:22%;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--secondary);">Sales hire — base + OTE (18 mo)</span><span class="mono" style="font-size:12px;color:var(--accent);">20% · $150K</span></div><div class="bar-bg"><div class="bar-fill" style="width:20%;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--secondary);">Sales tooling &amp; infrastructure</span><span class="mono" style="font-size:12px;color:var(--accent);">4% · $30K</span></div><div class="bar-bg"><div class="bar-fill" style="width:4%;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--secondary);">Legal, ops &amp; compliance setup</span><span class="mono" style="font-size:12px;color:var(--accent);">1% · $8K</span></div><div class="bar-bg"><div class="bar-fill" style="width:1%;"></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:12px;color:var(--secondary);">Reserve — extends to Series A</span><span class="mono" style="font-size:12px;color:var(--accent);">53% · $400K</span></div><div class="bar-bg"><div class="bar-fill" style="width:53%;"></div></div></div>
+        </div>
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:11px;color:var(--muted);">Instrument: SAFE / Convertible Note</span><span class="mono" style="font-size:11px;color:var(--accent);">$15,223/mo burn · 49mo runway</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Milestones</div>
+          <div style="display:flex;flex-direction:column;">
+            <div class="milestone-row"><span class="mono" style="font-size:11px;color:var(--accent);width:28px;flex-shrink:0;">M2</span><span style="font-size:11px;color:var(--secondary);">First paying customer · $299 MRR</span></div>
+            <div class="milestone-row"><span class="mono" style="font-size:11px;color:var(--accent);width:28px;flex-shrink:0;">M6</span><span style="font-size:11px;color:var(--secondary);">10 customers · $2,990 MRR · Okta + Azure AD live</span></div>
+            <div class="milestone-row"><span class="mono" style="font-size:11px;color:var(--accent);width:28px;flex-shrink:0;">M12</span><span style="font-size:11px;color:var(--secondary);">25 customers · $7,500 MRR · first Enterprise deal</span></div>
+            <div class="milestone-row"><span class="mono" style="font-size:11px;color:var(--accent);width:28px;flex-shrink:0;">M18</span><span style="font-size:11px;color:var(--secondary);">$120K ARR · repeatable GTM · raise Series A</span></div>
+          </div>
+        </div>
+        <div class="card" style="padding:18px;">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:12px;">Why invest now</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;gap:8px;font-size:11px;color:var(--secondary);"><span style="color:var(--accent);">✓</span>Full-featured MVP live at saas-scrub.vercel.app today</div>
+            <div style="display:flex;gap:8px;font-size:11px;color:var(--secondary);"><span style="color:var(--accent);">✓</span>$4B+ market with zero mid-market incumbents under $5K/yr</div>
+            <div style="display:flex;gap:8px;font-size:11px;color:var(--secondary);"><span style="color:var(--accent);">✓</span>$15,223/mo burn — 49 months of runway on $750K</div>
+            <div style="display:flex;gap:8px;font-size:11px;color:var(--secondary);"><span style="color:var(--accent);">✓</span>20%-of-savings Enterprise tier — revenue tied directly to ROI</div>
+            <div style="display:flex;gap:8px;font-size:11px;color:var(--secondary);"><span style="color:var(--accent);">✓</span>14× avg ROI in 30 days — retention and expansion write themselves</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 11 CLOSE ══ -->
+<div class="slide" id="s11">
+  <div class="orb" style="width:700px;height:700px;background:radial-gradient(circle,rgba(0,217,126,0.07),transparent 70%);top:50%;left:50%;transform:translate(-50%,-55%);"></div>
+  <div class="inner" style="text-align:center;position:relative;z-index:1;">
+    <div class="logo" style="justify-content:center;margin-bottom:36px;">
+      <div class="logo-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#070809" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <span class="logo-text">SaaS-Scrub</span>
+    </div>
+    <h1 style="font-size:66px;max-width:700px;margin:0 auto 18px;">The <span class="gradient-text">$150K/yr hole</span><br/>in every mid-market budget</h1>
+    <p style="font-size:16px;color:var(--secondary);max-width:500px;margin:0 auto 40px;line-height:1.75;">First autonomous SaaS management platform built for mid-market.<br/>Product live. Market proven. Window to own the category is <em>open now.</em></p>
+    <div class="card-border" style="padding:24px;display:inline-block;text-align:left;min-width:340px;">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:16px;">Get in touch</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:10px;align-items:center;"><svg width="14" height="14" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg><span style="font-size:13px;color:var(--secondary);">saas-scrub.vercel.app</span></div>
+        <div style="display:flex;gap:10px;align-items:center;"><svg width="14" height="14" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span style="font-size:13px;color:var(--secondary);">hello@saasscrub.io</span></div>
+        <div style="height:1px;background:var(--border);margin:4px 0;"></div>
+        <div style="display:flex;gap:10px;align-items:center;"><svg width="14" height="14" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span style="font-size:12px;color:var(--muted);">Live demo → admin@acmecorp.io / demo1234</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
