@@ -1,20 +1,22 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis,
+  AreaChart, Area, XAxis, YAxis,
   Tooltip, ResponsiveContainer, Cell, PieChart, Pie,
 } from "recharts";
 import {
   AlertTriangle, TrendingDown, AppWindow,
   Users, Zap, ArrowRight, Plug, CheckCircle2,
+  ArrowUpRight, ArrowDownRight, RefreshCw, Clock,
+  X, Info, ChevronUp, ChevronDown, ChevronsUpDown,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardBody } from "@/components/ui/Card";
 import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { formatCurrency, formatPercent, utilization, CATEGORY_COLORS, type AppCategory } from "@/lib/utils";
 
-// ─── Demo data fallback (shown when no real apps added yet) ──────────────────
+// ─── Demo data ────────────────────────────────────────────────────────────────
 const DEMO_SPEND = [
   { label: "Oct", total: 42800 },
   { label: "Nov", total: 44200 },
@@ -25,21 +27,21 @@ const DEMO_SPEND = [
 ];
 
 const DEMO_APPS = [
-  { id: "1", name: "Salesforce",  category: "finance",       monthlySpend: 12400, totalSeats: 80, activeSeats: 61, status: "active"  },
-  { id: "2", name: "Slack",       category: "communication", monthlySpend: 8200,  totalSeats: 200, activeSeats: 187, status: "active" },
-  { id: "3", name: "Notion",      category: "productivity",  monthlySpend: 3200,  totalSeats: 150, activeSeats: 42, status: "zombie"  },
-  { id: "4", name: "Figma",       category: "design",        monthlySpend: 2800,  totalSeats: 40,  activeSeats: 38, status: "active"  },
-  { id: "5", name: "Jira",        category: "dev",           monthlySpend: 2400,  totalSeats: 120, activeSeats: 101, status: "active" },
-  { id: "6", name: "Asana",       category: "productivity",  monthlySpend: 1900,  totalSeats: 60,  activeSeats: 11, status: "zombie"  },
-  { id: "7", name: "Zoom",        category: "communication", monthlySpend: 1600,  totalSeats: 200, activeSeats: 148, status: "active" },
-  { id: "8", name: "Monday.com",  category: "productivity",  monthlySpend: 1400,  totalSeats: 50,  activeSeats: 9, status: "zombie"   },
+  { id: "1", name: "Salesforce",  category: "finance",       monthlySpend: 12400, totalSeats: 80,  activeSeats: 61,  status: "active"  },
+  { id: "2", name: "Slack",       category: "communication", monthlySpend: 8200,  totalSeats: 200, activeSeats: 187, status: "active"  },
+  { id: "3", name: "Notion",      category: "productivity",  monthlySpend: 3200,  totalSeats: 150, activeSeats: 42,  status: "zombie"  },
+  { id: "4", name: "Figma",       category: "design",        monthlySpend: 2800,  totalSeats: 40,  activeSeats: 38,  status: "active"  },
+  { id: "5", name: "Jira",        category: "dev",           monthlySpend: 2400,  totalSeats: 120, activeSeats: 101, status: "active"  },
+  { id: "6", name: "Asana",       category: "productivity",  monthlySpend: 1900,  totalSeats: 60,  activeSeats: 11,  status: "zombie"  },
+  { id: "7", name: "Zoom",        category: "communication", monthlySpend: 1600,  totalSeats: 200, activeSeats: 148, status: "active"  },
+  { id: "8", name: "Monday.com",  category: "productivity",  monthlySpend: 1400,  totalSeats: 50,  activeSeats: 9,   status: "zombie"  },
 ];
 
 const DEMO_ALERTS = [
-  { id: "a1", type: "zombie_app",       severity: "critical", title: "Notion: 72% seats unused",       body: "108 of 150 seats have had no login in 90+ days. Potential savings: $2,304/mo." },
-  { id: "a2", type: "renewal_upcoming", severity: "warning",  title: "Salesforce renews in 23 days",   body: "Contract value: $148,800. Benchmark shows you're paying 34% above market rate." },
-  { id: "a3", type: "redundancy",       severity: "warning",  title: "3 overlapping project tools",    body: "Asana, Monday.com, and Notion all serve the same use case. Consolidate to save $5,100/mo." },
-  { id: "a4", type: "unused_seats",     severity: "info",     title: "Asana: 82% seats idle",          body: "49 of 60 seats unused. Downgrade to free tier or cancel." },
+  { id: "a1", type: "zombie_app",       severity: "critical", title: "Notion: 72% seats unused",       body: "108 of 150 seats have had no login in 90+ days. Potential savings: $2,304/mo.", href: "/apps"       },
+  { id: "a2", type: "renewal_upcoming", severity: "warning",  title: "Salesforce renews in 23 days",   body: "Contract value: $148,800. Benchmark shows you're paying 34% above market rate.",  href: "/contracts"  },
+  { id: "a3", type: "redundancy",       severity: "warning",  title: "3 overlapping project tools",    body: "Asana, Monday.com, and Notion all serve the same use case. Consolidate to save $5,100/mo.", href: "/redundancy" },
+  { id: "a4", type: "unused_seats",     severity: "info",     title: "Asana: 82% seats idle",          body: "49 of 60 seats unused. Downgrade to free tier or cancel.",                     href: "/apps"       },
 ];
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -61,39 +63,82 @@ type DashboardData = {
   hasData: boolean;
 };
 
+type SortCol = "name" | "monthlySpend" | "util" | null;
+
+// ─── Sparkline ────────────────────────────────────────────────────────────────
+function Sparkline({ data, positive = true }: { data: number[]; positive?: boolean }) {
+  if (data.length < 2) return null;
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const W = 48; const H = 20;
+  const points = data
+    .map((v, i) => `${(i / (data.length - 1)) * W},${H - ((v - min) / range) * H}`)
+    .join(" ");
+  const color = positive ? "#00d97e" : "#ff4757";
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} className="overflow-visible" aria-hidden="true">
+      <polyline points={points} fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+// ─── Skeleton shimmer ─────────────────────────────────────────────────────────
+function ChartSkeleton({ height }: { height: number }) {
+  return (
+    <div className="w-full rounded animate-pulse bg-elevated" style={{ height }} aria-hidden="true" />
+  );
+}
+
 // ─── Stat Card ────────────────────────────────────────────────────────────────
 function StatCard({
-  label, value, sub, icon: Icon, accent, trend,
+  label, value, sub, icon: Icon, accent, trend, delay = 0, spark, sparkPositive = true,
 }: {
   label: string; value: string; sub?: string;
-  icon: React.ElementType; accent?: boolean; trend?: string;
+  icon: React.ElementType; accent?: boolean; trend?: string; delay?: number;
+  spark?: number[]; sparkPositive?: boolean;
 }) {
+  const isUp = trend?.startsWith("+");
+  const DeltaIcon = isUp ? ArrowUpRight : ArrowDownRight;
+  const deltaColor = isUp ? "text-danger" : "text-accent";
+
   return (
-    <Card className="p-5 animate-fade-in">
+    <Card className="p-5 animate-fade-in" style={{ animationDelay: `${delay}ms` }}>
       <div className="flex items-start justify-between mb-3">
         <span className="text-xs text-secondary uppercase tracking-wider font-medium">{label}</span>
         <div className={`w-8 h-8 rounded flex items-center justify-center ${accent ? "bg-accent-dim text-accent" : "bg-elevated text-secondary"}`}>
           <Icon className="w-4 h-4" />
         </div>
       </div>
-      <div className={`font-mono font-bold text-2xl ${accent ? "text-accent" : "text-primary"}`}>
-        {value}
-      </div>
-      {(sub || trend) && (
-        <div className="flex items-center gap-2 mt-1.5">
-          {sub && <span className="text-xs text-secondary">{sub}</span>}
-          {trend && (
-            <span className={`text-xs font-medium ${trend.startsWith("+") ? "text-danger" : "text-accent"}`}>
-              {trend}
-            </span>
+
+      <div className="flex items-end justify-between">
+        <div>
+          <div className={`font-mono font-bold text-2xl leading-none ${accent ? "text-accent" : "text-primary"}`}>
+            {value}
+          </div>
+          {(sub || trend) && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              {sub && <span className="text-xs text-secondary">{sub}</span>}
+              {trend && (
+                <span className={`flex items-center gap-0.5 text-xs font-medium ${deltaColor}`}>
+                  <DeltaIcon className="w-3 h-3" />
+                  {trend}
+                </span>
+              )}
+            </div>
           )}
         </div>
-      )}
+        {spark && (
+          <div className="mb-1">
+            <Sparkline data={spark} positive={sparkPositive} />
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
 
-// ─── Alert severity color ─────────────────────────────────────────────────────
+// ─── Alert severity helpers ───────────────────────────────────────────────────
 function alertColor(severity: string) {
   if (severity === "critical") return "text-danger";
   if (severity === "warning")  return "text-warning";
@@ -104,8 +149,22 @@ function alertBg(severity: string) {
   if (severity === "warning")  return "bg-warning/5 border-warning/20";
   return "bg-info/5 border-info/20";
 }
+function AlertIcon({ severity }: { severity: string }) {
+  const cls = `w-3.5 h-3.5 flex-shrink-0 ${alertColor(severity)}`;
+  if (severity === "critical") return <AlertTriangle className={cls} aria-hidden="true" />;
+  if (severity === "warning")  return <AlertTriangle className={cls} aria-hidden="true" />;
+  return <Info className={cls} aria-hidden="true" />;
+}
 
-// ─── Custom tooltip ────────────────────────────────────────────────────────────
+// ─── Sort icon ────────────────────────────────────────────────────────────────
+function SortIcon({ col, active, dir }: { col: SortCol; active: SortCol; dir: "asc" | "desc" }) {
+  if (col !== active) return <ChevronsUpDown className="w-3 h-3 text-muted" />;
+  return dir === "asc"
+    ? <ChevronUp   className="w-3 h-3 text-accent" />
+    : <ChevronDown className="w-3 h-3 text-accent" />;
+}
+
+// ─── Spend tooltip ────────────────────────────────────────────────────────────
 function SpendTooltip({ active, payload, label }: {
   active?: boolean; payload?: { value: number }[]; label?: string;
 }) {
@@ -118,9 +177,47 @@ function SpendTooltip({ active, payload, label }: {
   );
 }
 
+// ─── Dashboard header ─────────────────────────────────────────────────────────
+function DashboardHeader({ isDemo }: { isDemo: boolean }) {
+  return (
+    <div className="flex items-center justify-between">
+      <div>
+        <h1 className="font-display font-bold text-xl text-primary leading-none">Dashboard</h1>
+        <div className="flex items-center gap-1.5 mt-1">
+          <Clock className="w-3 h-3 text-muted" aria-hidden="true" />
+          <span className="text-xs text-muted">
+            {isDemo ? "Demo data" : "Last synced 2 mins ago"}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {!isDemo && (
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-border text-xs text-secondary hover:text-primary hover:border-accent/40 transition-colors"
+            aria-label="Sync now"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Sync now
+          </button>
+        )}
+        <Link href="/integrations">
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded border border-border text-xs text-secondary hover:text-primary hover:border-accent/40 transition-colors">
+            <Plug className="w-3 h-3" />
+            Integrations
+          </button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export function DashboardClient({ data }: { data: DashboardData }) {
   const [mounted, setMounted] = useState(false);
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [sortCol, setSortCol] = useState<SortCol>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
   useEffect(() => setMounted(true), []);
 
   const isDemo = !data.hasData;
@@ -130,7 +227,8 @@ export function DashboardClient({ data }: { data: DashboardData }) {
   const appCount = isDemo ? 24    : data.totalApps;
   const seats    = isDemo ? 218   : data.unusedSeats;
   const zombies  = isDemo ? 3     : data.zombieCount;
-  const alerts   = isDemo ? DEMO_ALERTS : data.alerts;
+  const rawAlerts = isDemo ? DEMO_ALERTS : data.alerts.map((a) => ({ ...a, href: "/alerts" }));
+  const alerts   = rawAlerts.filter((a) => !dismissed.has(a.id));
   const apps     = isDemo ? DEMO_APPS   : data.topApps;
   const timeline = isDemo
     ? DEMO_SPEND
@@ -149,8 +247,40 @@ export function DashboardClient({ data }: { data: DashboardData }) {
       ]
     : data.categoryBreakdown;
 
+  // Sparkline data from timeline
+  const spendSpark = timeline.map((m) => m.total);
+
+  // Sorted apps
+  const sortedApps = useMemo(() => {
+    if (!sortCol) return apps;
+    return [...apps].sort((a, b) => {
+      let av: number | string;
+      let bv: number | string;
+      if (sortCol === "monthlySpend") { av = a.monthlySpend; bv = b.monthlySpend; }
+      else if (sortCol === "util") {
+        av = utilization(a.activeSeats, a.totalSeats);
+        bv = utilization(b.activeSeats, b.totalSeats);
+      } else { av = a.name; bv = b.name; }
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [apps, sortCol, sortDir]);
+
+  function toggleSort(col: NonNullable<SortCol>) {
+    if (sortCol === col) {
+      setSortDir((d) => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortCol(col);
+      setSortDir("desc");
+    }
+  }
+
   return (
     <div className="p-6 space-y-6">
+      {/* Dashboard header */}
+      <DashboardHeader isDemo={isDemo} />
+
       {/* Demo banner */}
       {isDemo && (
         <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-accent/5 border border-accent/20 animate-fade-in">
@@ -175,6 +305,9 @@ export function DashboardClient({ data }: { data: DashboardData }) {
           sub="across all apps"
           icon={TrendingDown}
           trend="+4.2% vs last mo"
+          spark={spendSpark}
+          sparkPositive={false}
+          delay={0}
         />
         <StatCard
           label="Potential Savings"
@@ -182,12 +315,17 @@ export function DashboardClient({ data }: { data: DashboardData }) {
           sub={`${zombies} zombie apps`}
           icon={Zap}
           accent
+          spark={[5200, 6100, 7400, 7800, 8200, 8600]}
+          delay={75}
         />
         <StatCard
           label="Apps Tracked"
           value={String(appCount)}
           sub="SaaS tools detected"
           icon={AppWindow}
+          spark={[20, 21, 22, 22, 23, 24]}
+          sparkPositive={false}
+          delay={150}
         />
         <StatCard
           label="Unused Seats"
@@ -195,10 +333,12 @@ export function DashboardClient({ data }: { data: DashboardData }) {
           sub="paying for nobody"
           icon={Users}
           trend={`-${formatCurrency(seats * 12)}/mo`}
+          spark={[240, 232, 228, 224, 220, 218]}
+          delay={225}
         />
       </div>
 
-      {/* Middle row: chart + alerts */}
+      {/* Middle row: chart + category */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Spend chart */}
         <Card className="xl:col-span-2">
@@ -229,7 +369,7 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ height: 180 }} />
+              <ChartSkeleton height={180} />
             )}
           </CardBody>
         </Card>
@@ -249,15 +389,23 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                     dataKey="value" paddingAngle={2}
                   >
                     {categoryData.map((entry) => (
-                      <Cell
-                        key={entry.name}
-                        fill={CATEGORY_COLORS[entry.name as AppCategory] ?? "#4a5568"}
-                      />
+                      <Cell key={entry.name} fill={CATEGORY_COLORS[entry.name as AppCategory] ?? "#4a5568"} />
                     ))}
                   </Pie>
+                  <Tooltip
+                    content={({ active, payload }) => {
+                      if (!active || !payload?.length) return null;
+                      return (
+                        <div className="bg-elevated border border-border rounded px-3 py-2 text-xs shadow-card">
+                          <div className="text-muted mb-1 capitalize">{payload[0].name}</div>
+                          <div className="font-mono font-bold text-primary">{formatCurrency(payload[0].value as number, { compact: true })}</div>
+                        </div>
+                      );
+                    }}
+                  />
                 </PieChart>
               ) : (
-                <div style={{ width: 120, height: 120 }} />
+                <ChartSkeleton height={120} />
               )}
             </div>
             <div className="space-y-2">
@@ -290,33 +438,55 @@ export function DashboardClient({ data }: { data: DashboardData }) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>App</th>
-                  <th>Monthly</th>
-                  <th>Utilization</th>
+                  <th>
+                    <button
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                      onClick={() => toggleSort("name")}
+                    >
+                      App <SortIcon col="name" active={sortCol} dir={sortDir} />
+                    </button>
+                  </th>
+                  <th>
+                    <button
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                      onClick={() => toggleSort("monthlySpend")}
+                    >
+                      Monthly <SortIcon col="monthlySpend" active={sortCol} dir={sortDir} />
+                    </button>
+                  </th>
+                  <th>
+                    <button
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                      onClick={() => toggleSort("util")}
+                    >
+                      Utilization <SortIcon col="util" active={sortCol} dir={sortDir} />
+                    </button>
+                  </th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
-                {apps.map((app) => {
+                {sortedApps.map((app) => {
                   const util = utilization(app.activeSeats, app.totalSeats);
                   const barColor =
                     util < 30 ? "#ff4757" :
                     util < 60 ? "#ffb142" :
                     "#00d97e";
+                  const catColor = CATEGORY_COLORS[app.category as AppCategory] ?? "#4a5568";
                   return (
-                    <tr key={app.id}>
+                    <tr key={app.id} className="hover:bg-elevated/40 transition-colors">
                       <td>
                         <div className="flex items-center gap-2.5">
                           <div
-                            className="w-6 h-6 rounded flex items-center justify-center text-2xs font-bold flex-shrink-0"
-                            style={{
-                              background: `${CATEGORY_COLORS[app.category as AppCategory]}20`,
-                              color: CATEGORY_COLORS[app.category as AppCategory] ?? "#fff",
-                            }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0"
+                            style={{ background: `${catColor}20`, color: catColor }}
                           >
                             {app.name.charAt(0)}
                           </div>
-                          <span className="text-primary text-xs font-medium">{app.name}</span>
+                          <div>
+                            <div className="text-primary text-xs font-medium">{app.name}</div>
+                            <div className="text-muted capitalize" style={{ fontSize: "10px" }}>{app.category}</div>
+                          </div>
                         </div>
                       </td>
                       <td>
@@ -326,18 +496,11 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                       </td>
                       <td>
                         <div className="flex items-center gap-2">
-                          <div className="util-bar w-16">
-                            <div
-                              className="util-bar-fill"
-                              style={{ width: `${util}%`, background: barColor }}
-                            />
+                          <div className="util-bar w-16" role="progressbar" aria-valuenow={util} aria-valuemin={0} aria-valuemax={100} aria-label={`${util}% utilization`}>
+                            <div className="util-bar-fill" style={{ width: `${util}%`, background: barColor }} />
                           </div>
-                          <span
-                            className="font-mono text-xs"
-                            style={{ color: barColor }}
-                          >
-                            {formatPercent(util)}
-                          </span>
+                          <span className="font-mono text-xs text-secondary">{formatPercent(util)}</span>
+                          {util < 30 && <span className="text-xs text-danger font-medium">Low</span>}
                         </div>
                       </td>
                       <td><StatusBadge status={app.status} /></td>
@@ -359,12 +522,30 @@ export function DashboardClient({ data }: { data: DashboardData }) {
             {alerts.map((alert) => (
               <div
                 key={alert.id}
-                className={`rounded px-3 py-2.5 border text-xs ${alertBg(alert.severity)} animate-fade-in`}
+                className={`rounded px-3 py-2.5 border text-xs transition-colors ${alertBg(alert.severity)} animate-fade-in`}
               >
-                <div className={`font-semibold mb-0.5 ${alertColor(alert.severity)}`}>
-                  {alert.title}
+                <div className="flex items-start gap-2">
+                  <AlertIcon severity={alert.severity} />
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-semibold mb-0.5 ${alertColor(alert.severity)}`}>
+                      {alert.title}
+                    </div>
+                    <div className="text-secondary leading-relaxed">{alert.body}</div>
+                    <Link
+                      href={alert.href}
+                      className={`inline-flex items-center gap-1 mt-1.5 font-medium hover:underline ${alertColor(alert.severity)}`}
+                    >
+                      Review <ArrowRight className="w-3 h-3" />
+                    </Link>
+                  </div>
+                  <button
+                    onClick={() => setDismissed((prev) => new Set([...prev, alert.id]))}
+                    aria-label="Dismiss alert"
+                    className="flex-shrink-0 text-muted hover:text-primary transition-colors p-0.5 rounded hover:bg-border/30"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
                 </div>
-                <div className="text-secondary leading-relaxed">{alert.body}</div>
               </div>
             ))}
             {alerts.length === 0 && (
@@ -378,7 +559,7 @@ export function DashboardClient({ data }: { data: DashboardData }) {
         </Card>
       </div>
 
-      {/* Integration CTA (if no integrations) */}
+      {/* Integration CTA */}
       {data.integrations.length === 0 && (
         <Card className="p-6 border-accent/20 bg-accent/5 animate-fade-in">
           <div className="flex items-center justify-between">

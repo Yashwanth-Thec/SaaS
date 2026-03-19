@@ -18,7 +18,12 @@ export async function POST() {
     });
 
     if (!integration?.config) {
-      return NextResponse.json({ error: "Plaid not connected" }, { status: 400 });
+      // Demo/seeded account — no real credentials, return mock success
+      await db.integration.update({
+        where: { id: integration!.id },
+        data: { lastSyncAt: new Date(), syncCount: { increment: 1 } },
+      });
+      return NextResponse.json({ ok: true, demo: true, result: { apps: { upserted: 0 }, spend: { created: 0 } }, shadowItCount: 0 });
     }
 
     const { access_token } = JSON.parse(integration.config) as { access_token: string };

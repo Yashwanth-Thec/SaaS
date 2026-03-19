@@ -5,9 +5,10 @@ interface CardProps {
   className?: string;
   elevated?: boolean;
   glow?: boolean;
+  style?: React.CSSProperties;
 }
 
-export function Card({ children, className, elevated, glow }: CardProps) {
+export function Card({ children, className, elevated, glow, style }: CardProps) {
   return (
     <div
       className={cn(
@@ -15,6 +16,7 @@ export function Card({ children, className, elevated, glow }: CardProps) {
         glow && "shadow-glow",
         className
       )}
+      style={style}
     >
       {children}
     </div>

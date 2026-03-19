@@ -405,7 +405,7 @@ function IntegrationCard({
 
           {/* Action */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {isConnected && (
+            {isConnected && integration.type !== "csv" && (
               <Button
                 variant="ghost"
                 size="xs"

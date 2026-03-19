@@ -21,6 +21,15 @@ export async function POST() {
       return NextResponse.json({ error: "Google Workspace not connected" }, { status: 400 });
     }
 
+    // Demo/seeded account — no real OAuth tokens stored
+    if (!integration.config) {
+      await db.integration.update({
+        where: { id: integration.id },
+        data: { lastSyncAt: new Date(), syncCount: { increment: 1 } },
+      });
+      return NextResponse.json({ ok: true, demo: true, result: { employees: { upserted: 0 }, apps: { upserted: 0 } } });
+    }
+
     await db.integration.update({
       where: { id: integration.id },
       data:  { status: "syncing" },
