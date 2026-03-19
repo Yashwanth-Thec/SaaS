@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AreaChart, Area, XAxis, YAxis,
   Tooltip, ResponsiveContainer, Cell, PieChart, Pie,
@@ -213,6 +214,7 @@ function DashboardHeader({ isDemo }: { isDemo: boolean }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export function DashboardClient({ data }: { data: DashboardData }) {
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [sortCol, setSortCol] = useState<SortCol>(null);
@@ -221,6 +223,18 @@ export function DashboardClient({ data }: { data: DashboardData }) {
   useEffect(() => setMounted(true), []);
 
   const isDemo = !data.hasData;
+
+  async function dismissAlert(id: string) {
+    setDismissed((prev) => new Set([...prev, id]));
+    if (!isDemo) {
+      await fetch(`/api/alerts/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isDismissed: true }),
+      });
+      router.refresh();
+    }
+  }
 
   const spend    = isDemo ? 53400 : data.totalMonthlySpend;
   const savings  = isDemo ? 8600  : data.potentialSavings;
@@ -539,7 +553,7 @@ export function DashboardClient({ data }: { data: DashboardData }) {
                     </Link>
                   </div>
                   <button
-                    onClick={() => setDismissed((prev) => new Set([...prev, alert.id]))}
+                    onClick={() => dismissAlert(alert.id)}
                     aria-label="Dismiss alert"
                     className="flex-shrink-0 text-muted hover:text-primary transition-colors p-0.5 rounded hover:bg-border/30"
                   >
