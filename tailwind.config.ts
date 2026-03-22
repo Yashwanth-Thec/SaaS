@@ -9,20 +9,23 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        base:    "#070809",
-        surface: "#0c0e10",
-        elevated:"#121518",
-        border:  "#1c2028",
-        subtle:  "#161a1f",
-        primary: "#e8ecf0",
-        secondary:"#8892a0",
-        muted:   "#4a5568",
-        accent:  "#00d97e",
-        "accent-dim": "rgba(0,217,126,0.12)",
+        // Semantic tokens — defined as RGB channels in CSS variables so
+        // Tailwind opacity modifiers (bg-base/80, border-border/50, etc.) work
+        base:      "rgb(var(--color-base) / <alpha-value>)",
+        surface:   "rgb(var(--color-surface) / <alpha-value>)",
+        elevated:  "rgb(var(--color-elevated) / <alpha-value>)",
+        border:    "rgb(var(--color-border) / <alpha-value>)",
+        subtle:    "rgb(var(--color-subtle) / <alpha-value>)",
+        primary:   "rgb(var(--color-primary) / <alpha-value>)",
+        secondary: "rgb(var(--color-secondary) / <alpha-value>)",
+        muted:     "rgb(var(--color-muted) / <alpha-value>)",
+        // Fixed tokens — same in both themes
+        accent:         "#00d97e",
+        "accent-dim":   "rgba(0,217,126,0.12)",
         "accent-hover": "#00f090",
-        danger:  "#ff4757",
-        warning: "#ffb142",
-        info:    "#2ed9ff",
+        danger:         "#ff4757",
+        warning:        "#ffb142",
+        info:           "#2ed9ff",
       },
       fontFamily: {
         display: ["var(--font-syne)", "sans-serif"],
@@ -39,7 +42,7 @@ const config: Config = {
         "2xl": "20px",
       },
       boxShadow: {
-        card: "0 0 0 1px #1c2028, 0 2px 8px rgba(0,0,0,0.4)",
+        card: "0 0 0 1px rgb(var(--color-border)), 0 2px 8px rgba(0,0,0,0.4)",
         glow: "0 0 20px rgba(0,217,126,0.2)",
         "glow-sm": "0 0 8px rgba(0,217,126,0.15)",
       },

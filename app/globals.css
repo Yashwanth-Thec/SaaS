@@ -2,13 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Custom scrollbar ──────────────────────────────────────────────────────── */
+/* ─── Theme variables ────────────────────────────────────────────────────────
+   RGB channel format (no commas) so Tailwind opacity modifiers work:
+   e.g. bg-base/80 → rgb(var(--color-base) / 0.8)
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Dark theme (default) */
+:root {
+  --color-base:      7 8 9;        /* #070809 */
+  --color-surface:   12 14 16;     /* #0c0e10 */
+  --color-elevated:  18 21 24;     /* #121518 */
+  --color-border:    28 32 40;     /* #1c2028 */
+  --color-subtle:    22 26 31;     /* #161a1f */
+  --color-primary:   232 236 240;  /* #e8ecf0 */
+  --color-secondary: 136 146 160;  /* #8892a0 */
+  --color-muted:     74 85 104;    /* #4a5568 */
+
+  --scrollbar-thumb: #1c2028;
+  --scrollbar-thumb-hover: #2a3040;
+  --shimmer-1: #0c0e10;
+  --shimmer-2: #121518;
+  --recharts-tooltip-bg: #121518;
+  --recharts-tooltip-border: #1c2028;
+  --recharts-tooltip-color: #e8ecf0;
+  --recharts-axis-fill: #4a5568;
+}
+
+/* Light theme — toggled by adding class="light" on <html> */
+.light {
+  --color-base:      248 249 250;  /* #f8f9fa */
+  --color-surface:   255 255 255;  /* #ffffff */
+  --color-elevated:  241 245 249;  /* #f1f5f9 */
+  --color-border:    226 232 240;  /* #e2e8f0 */
+  --color-subtle:    248 250 252;  /* #f8fafc */
+  --color-primary:   15 23 42;     /* #0f172a */
+  --color-secondary: 71 85 105;    /* #475569 */
+  --color-muted:     148 163 184;  /* #94a3b8 */
+
+  --scrollbar-thumb: #e2e8f0;
+  --scrollbar-thumb-hover: #cbd5e1;
+  --shimmer-1: #f1f5f9;
+  --shimmer-2: #e2e8f0;
+  --recharts-tooltip-bg: #ffffff;
+  --recharts-tooltip-border: #e2e8f0;
+  --recharts-tooltip-color: #0f172a;
+  --recharts-axis-fill: #94a3b8;
+}
+
+/* ─── Custom scrollbar ────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1c2028; border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: #2a3040; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
 
-/* ─── Base ──────────────────────────────────────────────────────────────────── */
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 * { box-sizing: border-box; }
 
 html {
@@ -17,12 +64,12 @@ html {
 }
 
 body {
-  background: #070809;
-  color: #e8ecf0;
+  background: rgb(var(--color-base));
+  color: rgb(var(--color-primary));
   font-family: var(--font-dm-sans), sans-serif;
 }
 
-/* ─── Utility layers ────────────────────────────────────────────────────────── */
+/* ─── Utility layers ──────────────────────────────────────────────────────── */
 @layer components {
   /* Cards */
   .card {
@@ -44,7 +91,7 @@ body {
   /* Accent glow on focus */
   .focus-accent:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px #070809, 0 0 0 4px rgba(0,217,126,0.5);
+    box-shadow: 0 0 0 2px rgb(var(--color-base)), 0 0 0 4px rgba(0,217,126,0.5);
   }
 
   /* Status dot */
@@ -89,25 +136,25 @@ body {
   }
 }
 
-/* ─── Animations ────────────────────────────────────────────────────────────── */
+/* ─── Animations ──────────────────────────────────────────────────────────── */
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to   { background-position:  200% 0; }
 }
 .shimmer {
-  background: linear-gradient(90deg, #0c0e10 25%, #121518 50%, #0c0e10 75%);
+  background: linear-gradient(90deg, var(--shimmer-1) 25%, var(--shimmer-2) 50%, var(--shimmer-1) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
 }
 
-/* ─── Recharts overrides ────────────────────────────────────────────────────── */
+/* ─── Recharts overrides ──────────────────────────────────────────────────── */
 .recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: #121518 !important;
-  border: 1px solid #1c2028 !important;
+  background: var(--recharts-tooltip-bg) !important;
+  border: 1px solid var(--recharts-tooltip-border) !important;
   border-radius: 6px !important;
-  color: #e8ecf0 !important;
+  color: var(--recharts-tooltip-color) !important;
 }
 .recharts-cartesian-axis-tick-value {
-  fill: #4a5568 !important;
+  fill: var(--recharts-axis-fill) !important;
   font-size: 11px !important;
 }

@@ -6,9 +6,10 @@ import {
   LayoutDashboard, AppWindow, Users, FileText,
   Plug, AlertTriangle, Settings, LogOut,
   Zap, TrendingDown, Shield, Brain, ShieldCheck,
-  ChevronLeft, ChevronRight,
+  ChevronLeft, ChevronRight, Sun, Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/components/ThemeProvider";
 
 const NAV = [
   {
@@ -58,6 +59,7 @@ interface SidebarProps {
 export function Sidebar({ orgName, orgPlan, userName, alertCount }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <aside
@@ -191,26 +193,19 @@ export function Sidebar({ orgName, orgPlan, userName, alertCount }: SidebarProps
       )}
 
       {/* User footer */}
-      <div className={cn("border-t border-border", collapsed ? "px-1.5 py-3 flex justify-center" : "px-3 py-3")}>
+      <div className={cn("border-t border-border", collapsed ? "px-1.5 py-3 flex flex-col items-center gap-2" : "px-3 py-3")}>
         {collapsed ? (
-          <form action="/api/auth/logout" method="POST">
+          <>
             <button
-              type="submit"
-              aria-label="Sign out"
-              className="flex items-center justify-center w-8 h-8 rounded text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="flex items-center justify-center w-8 h-8 rounded text-muted hover:text-primary hover:bg-elevated transition-colors"
             >
-              <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+              {theme === "dark"
+                ? <Sun  className="w-3.5 h-3.5" aria-hidden="true" />
+                : <Moon className="w-3.5 h-3.5" aria-hidden="true" />
+              }
             </button>
-          </form>
-        ) : (
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent/40 to-info/40 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">
-              {userName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium text-primary truncate">{userName}</div>
-              <div className="text-muted" style={{ fontSize: "11px" }}>Admin</div>
-            </div>
             <form action="/api/auth/logout" method="POST">
               <button
                 type="submit"
@@ -220,6 +215,50 @@ export function Sidebar({ orgName, orgPlan, userName, alertCount }: SidebarProps
                 <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
               </button>
             </form>
+          </>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-accent/40 to-info/40 flex items-center justify-center flex-shrink-0 text-xs font-bold text-primary">
+                {userName.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-medium text-primary truncate">{userName}</div>
+                <div className="text-muted" style={{ fontSize: "11px" }}>Admin</div>
+              </div>
+              <form action="/api/auth/logout" method="POST">
+                <button
+                  type="submit"
+                  aria-label="Sign out"
+                  className="flex items-center justify-center w-8 h-8 rounded text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
+              </form>
+            </div>
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+              className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-elevated transition-colors group"
+            >
+              <div className="w-7 h-4 rounded-full border border-border bg-elevated relative flex-shrink-0 transition-colors group-hover:border-secondary">
+                <div className={cn(
+                  "absolute top-0.5 w-3 h-3 rounded-full transition-all duration-200",
+                  theme === "light"
+                    ? "left-[14px] bg-accent"
+                    : "left-0.5 bg-muted"
+                )} />
+              </div>
+              <span className="text-xs text-muted group-hover:text-secondary transition-colors">
+                {theme === "dark" ? "Dark" : "Light"}
+              </span>
+              {theme === "dark"
+                ? <Moon className="w-3 h-3 text-muted ml-auto" />
+                : <Sun  className="w-3 h-3 text-warning ml-auto" />
+              }
+            </button>
           </div>
         )}
       </div>

@@ -30,7 +30,7 @@ export default async function IntegrationsPage() {
         title="Integrations"
         subtitle="Connect your tools to automatically discover and audit your SaaS stack"
       />
-      <IntegrationsClient connected={connected} />
+      <IntegrationsClient connected={connected} orgId={session.orgId} />
     </>
   );
 }

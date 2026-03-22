@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2, AlertCircle, Clock, RefreshCw,
   Upload, ExternalLink, Plug, ChevronDown,
-  FileText, Download,
+  FileText, Download, Copy, Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -22,6 +22,7 @@ interface ConnectionState {
 
 interface Props {
   connected: Record<string, ConnectionState>;
+  orgId:     string;
 }
 
 // ─── Integration definitions ──────────────────────────────────────────────────
@@ -38,6 +39,7 @@ const INTEGRATIONS = [
     envKeys:     ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
     action:      "oauth",
     connectUrl:  "/api/integrations/google/auth",
+    syncUrl:     "/api/integrations/google/sync",
     docsHint:    "Requires Google Workspace Admin (Super Admin or Reports Admin role).",
   },
   {
@@ -74,6 +76,7 @@ const INTEGRATIONS = [
     what:        ["Recurring SaaS charges → Apps", "Shadow IT detection", "90-day spend history"],
     envKeys:     ["PLAID_CLIENT_ID", "PLAID_SECRET"],
     action:      "plaid",
+    syncUrl:     "/api/integrations/plaid/sync",
     docsHint:    "Sandbox: username user_good / password pass_good",
   },
   {
@@ -85,6 +88,17 @@ const INTEGRATIONS = [
     category:    "Manual",
     what:        ["Bank statement → Spend records", "App inventory → SaaS Stack", "Employee list → People"],
     action:      "csv",
+  },
+  {
+    type:        "aws",
+    name:        "Amazon Web Services",
+    description: "Connect your AWS account via a read-only IAM role. Pulls Cost Explorer data to track spend per service — EC2, S3, RDS, Lambda, and more.",
+    logo:        "AWS",
+    logoColor:   "#FF9900",
+    category:    "Cloud Infrastructure",
+    what:        ["AWS services → SaaS Stack (EC2, S3, RDS…)", "Monthly spend per service → Spend records", "IAM users with console access → People"],
+    action:      "aws",
+    syncUrl:     "/api/integrations/aws/sync",
   },
   {
     type:        "hris_rippling",
@@ -344,17 +358,234 @@ function loadPlaidScript(): Promise<void> {
   });
 }
 
+// ─── Copy Button helper ───────────────────────────────────────────────────────
+
+function CopyButton({ text, label }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="flex items-center gap-1 px-2 py-1 rounded text-xs bg-elevated border border-border hover:border-secondary text-secondary hover:text-primary transition-all"
+    >
+      {copied ? <Check className="w-3 h-3 text-accent" /> : <Copy className="w-3 h-3" />}
+      {label ?? (copied ? "Copied!" : "Copy")}
+    </button>
+  );
+}
+
+// ─── AWS Connect ──────────────────────────────────────────────────────────────
+
+function AwsConnect({ onSuccess }: { onSuccess: (msg: string) => void }) {
+  const [step, setStep]             = useState<1 | 2 | 3 | 4>(1);
+  const [roleArn, setRoleArn]       = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState<string | null>(null);
+  const [externalId, setExternalId] = useState<string | null>(null);
+  const [awsAccountId, setAwsAccountId] = useState<string>("YOUR_SAAS_SCRUB_ACCOUNT_ID");
+
+  // Fetch setup info (External ID is HMAC-signed server-side, never derived client-side)
+  useEffect(() => {
+    fetch("/api/integrations/aws/setup-info")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.externalId)  setExternalId(d.externalId);
+        if (d.awsAccountId) setAwsAccountId(d.awsAccountId);
+      })
+      .catch(() => {});
+  }, []);
+
+  const trustPolicy = JSON.stringify({
+    Version: "2012-10-17",
+    Statement: [{
+      Effect:    "Allow",
+      Principal: { AWS: `arn:aws:iam::${awsAccountId}:root` },
+      Action:    "sts:AssumeRole",
+      Condition: { StringEquals: { "sts:ExternalId": externalId } },
+    }],
+  }, null, 2);
+
+  const permissionsPolicy = JSON.stringify({
+    Version: "2012-10-17",
+    Statement: [{
+      Effect: "Allow",
+      Action: [
+        "ce:GetCostAndUsage",
+        "ce:GetCostForecast",
+        "iam:ListUsers",
+        "iam:GetAccountSummary",
+      ],
+      Resource: "*",
+    }],
+  }, null, 2);
+
+  async function handleConnect() {
+    if (!roleArn.trim()) { setError("Please enter the Role ARN."); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res  = await fetch("/api/integrations/aws/connect", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ roleArn: roleArn.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error); return; }
+      onSuccess(`AWS connected · ${data.services ?? 0} services · ${data.spend ?? 0} spend records`);
+    } catch {
+      setError("Connection failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const steps = [
+    { n: 1 as const, label: "Your External ID" },
+    { n: 2 as const, label: "Trust Policy" },
+    { n: 3 as const, label: "Permissions" },
+    { n: 4 as const, label: "Role ARN" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Step indicators */}
+      <div className="flex items-center gap-1">
+        {steps.map(({ n, label }, i) => (
+          <div key={n} className="flex items-center gap-1">
+            <button
+              onClick={() => setStep(n)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                step === n
+                  ? "bg-accent/15 text-accent border border-accent/30"
+                  : step > n
+                  ? "text-accent/70 hover:text-accent"
+                  : "text-muted hover:text-secondary"
+              }`}
+            >
+              <span className={`w-4 h-4 rounded-full flex items-center justify-center text-2xs font-bold ${
+                step > n ? "bg-accent text-white" : step === n ? "bg-accent/20 text-accent" : "bg-border text-muted"
+              }`}>{step > n ? "✓" : n}</span>
+              {label}
+            </button>
+            {i < steps.length - 1 && <span className="text-border text-xs">›</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Step 1: External ID */}
+      {step === 1 && (
+        <div className="space-y-3">
+          <p className="text-xs text-secondary">
+            This unique ID ties the IAM role to your SaaS-Scrub account. You&apos;ll paste it into the trust policy in the next step.
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 px-3 py-2 rounded bg-elevated border border-border text-xs font-mono text-primary">
+              {externalId ?? "Loading…"}
+            </code>
+            {externalId && <CopyButton text={externalId} />}
+          </div>
+          <Button variant="primary" size="sm" onClick={() => setStep(2)}>
+            Next →
+          </Button>
+        </div>
+      )}
+
+      {/* Step 2: Trust Policy */}
+      {step === 2 && (
+        <div className="space-y-3">
+          <p className="text-xs text-secondary">
+            In the AWS Console, create a new IAM role. Under <strong className="text-primary">Trust relationships</strong>, paste this policy:
+          </p>
+          <div className="relative">
+            <pre className="px-3 py-2.5 rounded bg-elevated border border-border text-xs font-mono text-secondary overflow-auto max-h-44 leading-relaxed">
+              {trustPolicy}
+            </pre>
+            <div className="absolute top-2 right-2">
+              <CopyButton text={trustPolicy} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setStep(1)}>← Back</Button>
+            <Button variant="primary" size="sm" onClick={() => setStep(3)}>Next →</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Permissions Policy */}
+      {step === 3 && (
+        <div className="space-y-3">
+          <p className="text-xs text-secondary">
+            Attach an inline policy to the role with these read-only permissions. No write access is requested.
+          </p>
+          <div className="relative">
+            <pre className="px-3 py-2.5 rounded bg-elevated border border-border text-xs font-mono text-secondary overflow-auto max-h-40 leading-relaxed">
+              {permissionsPolicy}
+            </pre>
+            <div className="absolute top-2 right-2">
+              <CopyButton text={permissionsPolicy} />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setStep(2)}>← Back</Button>
+            <Button variant="primary" size="sm" onClick={() => setStep(4)}>Next →</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Paste ARN + Connect */}
+      {step === 4 && (
+        <div className="space-y-3">
+          <p className="text-xs text-secondary">
+            Copy the Role ARN from the AWS Console (it looks like{" "}
+            <code className="font-mono bg-elevated px-1 rounded text-2xs">arn:aws:iam::123456789012:role/SaaSScrubReader</code>)
+            and paste it below.
+          </p>
+          <input
+            type="text"
+            value={roleArn}
+            onChange={(e) => setRoleArn(e.target.value)}
+            placeholder="arn:aws:iam::123456789012:role/SaaSScrubReader"
+            className="w-full px-3 py-2 rounded border border-border bg-elevated text-xs text-primary placeholder:text-muted focus:outline-none focus:border-accent font-mono"
+          />
+          {error && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded bg-danger/10 border border-danger/20 text-xs text-danger">
+              <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+              {error}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setStep(3)}>← Back</Button>
+            <Button variant="primary" size="sm" loading={loading} onClick={handleConnect}>
+              <Plug className="w-3.5 h-3.5" />
+              Validate &amp; Connect
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Integration Card ─────────────────────────────────────────────────────────
 
 function IntegrationCard({
   integration,
   state,
+  orgId,
   onSync,
   onSuccess,
 }: {
   integration: (typeof INTEGRATIONS)[number];
   state: ConnectionState | undefined;
-  onSync: (type: string) => void;
+  orgId: string;
+  onSync: (type: string, syncUrl: string) => void;
   onSuccess: (msg: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -405,12 +636,14 @@ function IntegrationCard({
 
           {/* Action */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {isConnected && integration.type !== "csv" && (
+            {isConnected && "syncUrl" in integration && integration.syncUrl && (
               <Button
                 variant="ghost"
                 size="xs"
                 loading={isSyncing}
-                onClick={() => onSync(integration.type)}
+                onClick={() => "syncUrl" in integration && integration.syncUrl
+                  ? onSync(integration.type, integration.syncUrl)
+                  : undefined}
               >
                 <RefreshCw className="w-3 h-3" />
                 Sync
@@ -456,6 +689,8 @@ function IntegrationCard({
               </Button>
             ) : integration.type === "csv" ? (
               <CsvUploader onSuccess={onSuccess} />
+            ) : integration.type === "aws" && !isConnected ? (
+              <AwsConnect onSuccess={onSuccess} />
             ) : integration.type === "plaid" && !isConnected ? (
               <PlaidConnect onSuccess={onSuccess} />
             ) : integration.action === "oauth" && !isConnected ? (
@@ -482,7 +717,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   missing_code:          "OAuth flow was cancelled or incomplete. Please try again.",
 };
 
-export function IntegrationsClient({ connected }: Props) {
+export function IntegrationsClient({ connected, orgId }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [connectedState, setConnectedState] = useState(connected);
@@ -518,10 +753,10 @@ export function IntegrationsClient({ connected }: Props) {
     setTimeout(() => setToast(null), 5000);
   }
 
-  async function handleSync(type: string) {
+  async function handleSync(type: string, syncUrl: string) {
     setSyncing(type);
     try {
-      const res  = await fetch(`/api/integrations/${type}/sync`, { method: "POST" });
+      const res  = await fetch(syncUrl, { method: "POST" });
       const data = await res.json();
       if (!res.ok) { showToast(`Sync failed: ${data.error}`, "error"); return; }
       showToast(`Sync complete · ${data.result?.apps?.upserted ?? 0} apps updated`);
@@ -549,7 +784,7 @@ export function IntegrationsClient({ connected }: Props) {
     return acc;
   }, {} as Record<string, typeof INTEGRATIONS[number][]>);
 
-  const categoryOrder = ["Identity & Directory", "Financial", "Manual", "HRIS", "Coming Soon"];
+  const categoryOrder = ["Identity & Directory", "Cloud Infrastructure", "Financial", "Manual", "HRIS", "Coming Soon"];
 
   return (
     <div className="p-6 space-y-8 max-w-3xl">
@@ -588,6 +823,7 @@ export function IntegrationsClient({ connected }: Props) {
                   key={integration.type}
                   integration={integration}
                   state={connectedState[integration.type]}
+                  orgId={orgId}
                   onSync={handleSync}
                   onSuccess={handleSuccess}
                 />

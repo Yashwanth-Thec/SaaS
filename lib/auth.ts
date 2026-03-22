@@ -3,9 +3,20 @@ import { cookies } from "next/headers";
 import { db } from "./db";
 
 const SESSION_COOKIE = "scrub-session";
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET ?? "fallback-dev-secret"
-);
+
+function getJwtSecret(): Uint8Array {
+  const raw = process.env.JWT_SECRET;
+  if (!raw || raw.length < 32) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET must be set and at least 32 characters in production");
+    }
+    // Dev-only fallback — will not work in production
+    return new TextEncoder().encode("dev-only-secret-do-not-use-in-prod-12345");
+  }
+  return new TextEncoder().encode(raw);
+}
+
+const JWT_SECRET = getJwtSecret();
 
 export interface SessionPayload {
   userId: string;
