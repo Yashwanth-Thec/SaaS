@@ -2,7 +2,7 @@
 import { useState } from "react";
 import {
   AlertTriangle, AlertCircle, Info,
-  CheckCircle2, X, Zap, RefreshCw,
+  CheckCircle2, X, Zap, RefreshCw, Brain, Sparkles, Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -41,10 +41,119 @@ function severityText(s: string) {
   return "text-info";
 }
 
+// ─── NL Alert Rule Modal ──────────────────────────────────────────────────────
+
+function NlAlertModal({ onCreated, onClose }: {
+  onCreated: (alerts: Alert[]) => void;
+  onClose:   () => void;
+}) {
+  const [rule,    setRule]    = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result,  setResult]  = useState<{ interpretation: string; alertsCreated: number } | null>(null);
+  const [error,   setError]   = useState<string | null>(null);
+
+  async function submit() {
+    if (!rule.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res  = await fetch("/api/ai/alert-rule", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ rule }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setResult(data);
+      onCreated(data.alerts);
+    } catch (err) {
+      setError(String(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-surface border border-border rounded-2xl w-full max-w-lg shadow-2xl">
+        <div className="flex items-center gap-3 p-5 border-b border-border">
+          <div className="w-8 h-8 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center">
+            <Brain className="w-4 h-4 text-accent" />
+          </div>
+          <div>
+            <div className="font-display font-bold text-sm text-primary">AI Alert Rule</div>
+            <div className="text-xs text-muted">Describe a condition in plain English</div>
+          </div>
+          <button onClick={onClose} className="ml-auto text-muted hover:text-primary">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div>
+            <textarea
+              value={rule}
+              onChange={(e) => setRule(e.target.value)}
+              rows={3}
+              placeholder='e.g. "Alert me when any app has less than 50% seat utilization" or "Flag all apps over $500/mo with no active users"'
+              className="w-full bg-elevated border border-border rounded-xl px-4 py-3 text-sm text-primary placeholder:text-muted focus:outline-none focus:border-accent/50 resize-none"
+            />
+            <p className="text-xs text-muted mt-1.5">
+              Claude will interpret your rule, scan your current app data, and create matching alerts automatically.
+            </p>
+          </div>
+
+          {/* Examples */}
+          <div className="space-y-1.5">
+            <div className="text-xs font-semibold text-muted uppercase tracking-wider">Examples</div>
+            {[
+              "Alert me when any app has less than 30% seat utilization",
+              "Flag apps in the security category that are over $200/month",
+              "Warn me about any zombie apps — active status but 0 active seats",
+            ].map((ex) => (
+              <button
+                key={ex}
+                onClick={() => setRule(ex)}
+                className="w-full text-left text-xs text-secondary hover:text-primary px-3 py-2 rounded-lg hover:bg-elevated transition-colors border border-transparent hover:border-border"
+              >
+                &ldquo;{ex}&rdquo;
+              </button>
+            ))}
+          </div>
+
+          {error && (
+            <div className="p-3 rounded-lg bg-danger/8 border border-danger/20 text-xs text-danger">{error}</div>
+          )}
+
+          {result && (
+            <div className="p-3 rounded-lg bg-accent/8 border border-accent/20 space-y-1">
+              <div className="flex items-center gap-1.5 text-xs text-accent font-semibold">
+                <Sparkles className="w-3.5 h-3.5" />
+                {result.alertsCreated} alert{result.alertsCreated !== 1 ? "s" : ""} created
+              </div>
+              <p className="text-xs text-secondary">{result.interpretation}</p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 px-5 pb-5">
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button onClick={submit} disabled={!rule.trim() || loading || !!result}>
+            {loading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Analyzing…</> : <><Brain className="w-3.5 h-3.5" /> Create Alerts</>}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
+
 export function AlertsClient({ initialAlerts }: { initialAlerts: Alert[] }) {
   const [alerts, setAlerts] = useState(initialAlerts);
   const [filter, setFilter] = useState<"all" | "critical" | "warning" | "info">("all");
   const [dismissing, setDismissing] = useState<string | null>(null);
+  const [showNlModal, setShowNlModal] = useState(false);
 
   const filtered = filter === "all" ? alerts : alerts.filter((a) => a.severity === filter);
   const counts = {
@@ -76,6 +185,13 @@ export function AlertsClient({ initialAlerts }: { initialAlerts: Alert[] }) {
 
   return (
     <div className="p-6 max-w-3xl space-y-5">
+      {showNlModal && (
+        <NlAlertModal
+          onCreated={(newAlerts) => setAlerts((prev) => [...newAlerts, ...prev])}
+          onClose={() => setShowNlModal(false)}
+        />
+      )}
+
       {/* Summary row */}
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -95,17 +211,23 @@ export function AlertsClient({ initialAlerts }: { initialAlerts: Alert[] }) {
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2 text-xs text-muted">
           <Zap className="w-3.5 h-3.5 text-accent" />
           <span>{filtered.length} alert{filtered.length !== 1 ? "s" : ""}{filter !== "all" ? ` (${filter})` : ""}</span>
         </div>
-        {filtered.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={dismissAll}>
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            Dismiss {filter === "all" ? "all" : `all ${filter}`}
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={() => setShowNlModal(true)}>
+            <Brain className="w-3.5 h-3.5" />
+            AI Alert Rule
           </Button>
-        )}
+          {filtered.length > 0 && (
+            <Button variant="ghost" size="sm" onClick={dismissAll}>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              Dismiss {filter === "all" ? "all" : `all ${filter}`}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Alert list */}

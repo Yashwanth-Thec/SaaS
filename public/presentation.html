@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS-Scrub — Hackathon Pitch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
+
+<style>
+/* =============================================
+   VIEWPORT FIT BASE — MANDATORY
+   ============================================= */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #050a1a;
+}
+
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+.slide {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+:root {
+  --title-size:  clamp(2rem,    6vw,  5.5rem);
+  --h2-size:     clamp(1.4rem,  3.5vw, 3rem);
+  --h3-size:     clamp(1rem,    2.2vw, 1.8rem);
+  --body-size:   clamp(0.8rem,  1.4vw, 1.1rem);
+  --small-size:  clamp(0.65rem, 0.9vw, 0.85rem);
+  --mono-size:   clamp(0.7rem,  1.1vw, 0.95rem);
+  --pad:         clamp(1.5rem,  5vw,   5rem);
+  --gap:         clamp(0.6rem,  1.5vw, 1.5rem);
+
+  /* Neon Cyber palette */
+  --bg:       #050a1a;
+  --bg2:      #080f22;
+  --cyan:     #00e5ff;
+  --cyan-dim: rgba(0, 229, 255, 0.12);
+  --cyan-glow:rgba(0, 229, 255, 0.35);
+  --magenta:  #ff2d78;
+  --mag-dim:  rgba(255, 45, 120, 0.12);
+  --text:     #e8f4ff;
+  --muted:    rgba(232, 244, 255, 0.45);
+  --border:   rgba(0, 229, 255, 0.18);
+  --card-bg:  rgba(0, 229, 255, 0.04);
+}
+
+body { font-family: 'Space Grotesk', sans-serif; color: var(--text); }
+
+@media (max-height: 700px) {
+  :root {
+    --title-size: clamp(1.5rem, 5vw, 3rem);
+    --h2-size:    clamp(1.1rem, 3vw, 2rem);
+    --pad:        clamp(1rem, 3vw, 2.5rem);
+    --gap:        clamp(0.4rem, 1vw, 0.8rem);
+  }
+}
+
+@media (max-height: 500px) {
+  :root {
+    --title-size: clamp(1.2rem, 4vw, 2rem);
+    --h2-size:    clamp(0.9rem, 2.5vw, 1.5rem);
+    --pad:        clamp(0.75rem, 2vw, 1.5rem);
+  }
+  .decorative, .nav-dots { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.2s !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
+/* =============================================
+   SHARED COMPONENTS
+   ============================================= */
+
+/* Grid overlay background */
+.grid-bg {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.04) 1px, transparent 1px);
+  background-size: clamp(30px, 4vw, 50px) clamp(30px, 4vh, 50px);
+  pointer-events: none;
+}
+
+/* Glow orb */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(clamp(40px, 8vw, 100px));
+  pointer-events: none;
+  animation: orb-drift 8s ease-in-out infinite alternate;
+}
+@keyframes orb-drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(2%, 3%) scale(1.05); }
+}
+
+/* Slide number */
+.slide-num {
+  position: absolute;
+  top: var(--pad);
+  right: var(--pad);
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  z-index: 10;
+}
+
+/* Tag pill */
+.tag {
+  display: inline-flex; align-items: center; gap: 0.4em;
+  padding: 0.3em 0.9em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--cyan-dim);
+  font-size: var(--small-size);
+  color: var(--cyan);
+  font-family: 'Space Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tag.mag {
+  border-color: rgba(255,45,120,0.3);
+  background: var(--mag-dim);
+  color: var(--magenta);
+}
+
+/* Reveal animation */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1),
+              transform 0.6s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal.d1 { transition-delay: 0.1s; }
+.reveal.d2 { transition-delay: 0.22s; }
+.reveal.d3 { transition-delay: 0.36s; }
+.reveal.d4 { transition-delay: 0.5s; }
+.reveal.d5 { transition-delay: 0.64s; }
+.reveal.d6 { transition-delay: 0.78s; }
+
+/* Glow text */
+.glow {
+  color: var(--cyan);
+  text-shadow: 0 0 clamp(8px,2vw,20px) var(--cyan-glow),
+               0 0 clamp(30px,5vw,60px) rgba(0,229,255,0.15);
+}
+.glow-mag {
+  color: var(--magenta);
+  text-shadow: 0 0 clamp(8px,2vw,20px) rgba(255,45,120,0.5),
+               0 0 clamp(30px,5vw,60px) rgba(255,45,120,0.15);
+}
+
+/* Nav dots */
+.nav-dots {
+  position: fixed;
+  right: clamp(0.75rem, 2vw, 1.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 100;
+}
+.nav-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+.nav-dot.active {
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan-glow);
+  transform: scale(1.4);
+}
+
+/* Progress bar */
+.progress-bar {
+  position: fixed;
+  bottom: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  transition: width 0.4s ease;
+  z-index: 100;
+  box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+  margin: var(--gap) 0;
+}
+
+/* Card */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(8px, 1.2vw, 16px);
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  max-height: min(80vh, 700px);
+}
+
+/* Mono label */
+.mono { font-family: 'Space Mono', monospace; }
+
+/* =============================================
+   SLIDE 1 — TITLE
+   ============================================= */
+#slide-1 {
+  background: var(--bg);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#slide-1 .orb-1 {
+  width: clamp(200px, 40vw, 500px);
+  height: clamp(200px, 40vw, 500px);
+  background: radial-gradient(circle, rgba(0,229,255,0.18) 0%, transparent 70%);
+  top: -10%; left: -5%;
+}
+#slide-1 .orb-2 {
+  width: clamp(150px, 30vw, 380px);
+  height: clamp(150px, 30vw, 380px);
+  background: radial-gradient(circle, rgba(255,45,120,0.14) 0%, transparent 70%);
+  bottom: -5%; right: -5%;
+  animation-delay: 3s;
+}
+.title-logo {
+  width: clamp(40px, 6vw, 72px);
+  height: clamp(40px, 6vw, 72px);
+  border-radius: clamp(8px, 1.2vw, 14px);
+  background: linear-gradient(135deg, var(--cyan) 0%, rgba(0,229,255,0.4) 100%);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto var(--gap);
+  box-shadow: 0 0 clamp(15px, 3vw, 30px) var(--cyan-glow);
+  font-size: clamp(18px, 3vw, 32px);
+}
+.title-main {
+  font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+  font-size: var(--title-size);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: clamp(0.4rem, 1vw, 0.8rem);
+}
+.title-sub {
+  font-size: var(--h3-size);
+  color: var(--muted);
+  font-weight: 400;
+  max-width: 600px;
+  line-height: 1.4;
+}
+.title-tags {
+  display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;
+  margin-top: clamp(1rem, 2vw, 2rem);
+}
+
+/* =============================================
+   SLIDE 2 — THE PROBLEM
+   ============================================= */
+#slide-2 { background: var(--bg); justify-content: center; }
+#slide-2 .orb-1 {
+  width: clamp(180px, 35vw, 450px);
+  height: clamp(180px, 35vw, 450px);
+  background: radial-gradient(circle, rgba(255,45,120,0.12) 0%, transparent 70%);
+  top: -15%; right: 10%;
+}
+.problem-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: var(--pad);
+  gap: var(--gap);
+  max-width: min(90vw, 1100px);
+  margin: 0 auto;
+  width: 100%;
+}
+.problem-label {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--magenta);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.problem-heading {
+  font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+  font-size: var(--h2-size);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--gap);
+  margin-top: clamp(0.5rem, 1.5vw, 1.5rem);
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(8px, 1.2vw, 16px);
+  padding: clamp(0.8rem, 2vw, 1.5rem);
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.stat-num {
+  font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.stat-desc {
+  font-size: var(--small-size);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* =============================================
+   SLIDE 3 — THE SOLUTION
+   ============================================= */
+#slide-3 { background: var(--bg); justify-content: center; }
+#slide-3 .orb-1 {
+  width: clamp(180px, 35vw, 420px);
+  height: clamp(180px, 35vw, 420px);
+  background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
+  bottom: -10%; left: 5%;
+}
+.solution-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: var(--pad);
+  gap: var(--gap);
+  max-width: min(90vw, 1100px);
+  margin: 0 auto;
+  width: 100%;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(0.5rem, 1vw, 0.8rem);
+}
+.feat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 12px);
+  padding: clamp(0.6rem, 1.5vw, 1.2rem);
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.feat-icon {
+  font-size: clamp(1rem, 2vw, 1.6rem);
+  margin-bottom: 0.2rem;
+}
+.feat-name {
+  font-size: var(--small-size);
+  font-weight: 600;
+  color: var(--text);
+}
+.feat-desc {
+  font-size: clamp(0.6rem, 0.9vw, 0.78rem);
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* =============================================
+   SLIDES 4 + 5 — DEMO SLIDES
+   ============================================= */
+#slide-demo-a { background: var(--bg); justify-content: center; }
+#slide-demo-a .orb-d {
+  width: clamp(200px,38vw,480px);
+  height: clamp(200px,38vw,480px);
+  background: radial-gradient(circle,rgba(0,229,255,0.09) 0%,transparent 70%);
+  top: -12%; right: -8%;
+}
+#slide-demo-b { background: var(--bg); justify-content: center; }
+#slide-demo-b .orb-d {
+  width: clamp(200px,36vw,460px);
+  height: clamp(200px,36vw,460px);
+  background: radial-gradient(circle,rgba(255,45,120,0.08) 0%,transparent 70%);
+  bottom: -10%; left: -6%;
+}
+
+/* Shared browser-window chrome */
+.browser-win {
+  flex: 1;
+  min-height: 0;
+  border-radius: clamp(8px,1.2vw,14px);
+  border: 1px solid rgba(0,229,255,0.2);
+  background: #080d1c;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0,229,255,0.07), inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+.browser-chrome {
+  background: #0c1225;
+  border-bottom: 1px solid rgba(0,229,255,0.1);
+  padding: 0.45rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.browser-dots { display: flex; gap: 0.28rem; flex-shrink: 0; }
+.browser-dot { width: 9px; height: 9px; border-radius: 50%; }
+.browser-url {
+  flex: 1;
+  background: #060b18;
+  border: 1px solid rgba(0,229,255,0.1);
+  border-radius: 5px;
+  padding: 0.18rem 0.6rem;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.5rem,0.62vw,0.58rem);
+  color: rgba(232,244,255,0.32);
+  text-align: center;
+}
+
+/* App sidebar */
+.app-sidebar {
+  width: clamp(40px,4.5vw,52px);
+  background: #060c1a;
+  border-right: 1px solid rgba(0,229,255,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0;
+  gap: 0.32rem;
+  flex-shrink: 0;
+}
+.sidebar-logo {
+  width: 25px; height: 25px;
+  border-radius: 5px;
+  background: linear-gradient(135deg,rgba(0,229,255,0.4),rgba(0,229,255,0.15));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem;
+  margin-bottom: 0.45rem;
+}
+.sidebar-icon {
+  width: 29px; height: 29px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem;
+  opacity: 0.32;
+}
+.sidebar-icon.active {
+  background: rgba(0,229,255,0.12);
+  border: 1px solid rgba(0,229,255,0.25);
+  opacity: 1;
+}
+.sidebar-badge {
+  position: relative;
+}
+.sidebar-badge::after {
+  content: '';
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #ff2d78;
+  border: 1px solid #050a1a;
+}
+
+/* KPI card */
+.kpi-card {
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.14);
+  border-radius: 7px;
+  padding: clamp(0.32rem,0.65vw,0.52rem);
+}
+.kpi-card.danger { background: rgba(255,45,120,0.05); border-color: rgba(255,45,120,0.18); }
+.kpi-label {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.4rem,0.55vw,0.52rem);
+  color: rgba(232,244,255,0.36);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.kpi-value {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.82rem,1.45vw,1.18rem);
+  font-weight: 700;
+  color: #e8f4ff;
+  line-height: 1.15;
+}
+.kpi-value.danger { color: #ff2d78; }
+.kpi-sub {
+  font-size: clamp(0.4rem,0.52vw,0.5rem);
+  margin-top: 0.1rem;
+}
+
+/* Table header cell */
+.th {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.4rem,0.55vw,0.52rem);
+  color: rgba(232,244,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.13em 0.45em;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.4rem,0.55vw,0.52rem);
+  white-space: nowrap;
+}
+.status-zombie { background: rgba(255,45,120,0.12); border: 1px solid rgba(255,45,120,0.28); color: #ff2d78; }
+.status-healthy { background: rgba(0,217,126,0.1); border: 1px solid rgba(0,217,126,0.28); color: #00d97e; }
+.status-review { background: rgba(255,177,66,0.1); border: 1px solid rgba(255,177,66,0.28); color: #ffb142; }
+
+/* Util bar */
+.util-bar-wrap {
+  display: flex; align-items: center; gap: 0.35rem;
+}
+.util-bar-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.07);
+}
+.util-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+.util-pct {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.4rem,0.55vw,0.52rem);
+  width: 26px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* App row in table */
+.app-row {
+  display: grid;
+  grid-template-columns: 1.7fr 0.85fr 0.9fr 1.6fr 0.8fr;
+  padding: 0.32rem 0.65rem;
+  border-bottom: 1px solid rgba(0,229,255,0.055);
+  align-items: center;
+}
+.app-row.flagged { background: rgba(255,45,120,0.025); }
+.app-name-cell {
+  display: flex; align-items: center; gap: 0.38rem;
+}
+.app-icon {
+  width: 19px; height: 19px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+  font-weight: 700;
+  color: white;
+}
+.app-name-text {
+  font-size: clamp(0.52rem,0.75vw,0.68rem);
+  color: #e8f4ff;
+  font-weight: 500;
+}
+.app-mono {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.5rem,0.7vw,0.64rem);
+  color: rgba(232,244,255,0.48);
+}
+
+/* =============================================
+   SLIDE 6 — CLAUDE ARCHITECTURE
+   ============================================= */
+#slide-6 { background: var(--bg); justify-content: center; }
+#slide-6 .orb-1 {
+  width: clamp(200px, 40vw, 500px);
+  height: clamp(200px, 40vw, 500px);
+  background: radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%);
+  top: -10%; right: -10%;
+}
+.arch-layout {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+  padding: var(--pad);
+  gap: var(--gap);
+  max-width: min(90vw, 1100px);
+  margin: 0 auto;
+  width: 100%;
+}
+.arch-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.4rem, 0.8vw, 0.8rem);
+  align-items: stretch;
+}
+.arch-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 12px);
+  padding: clamp(0.6rem, 1.2vw, 1.1rem);
+  display: flex; flex-direction: column; gap: 0.25rem;
+  position: relative;
+  overflow: hidden;
+}
+.arch-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+.arch-card.mag::before { background: linear-gradient(90deg, var(--magenta), transparent); }
+.arch-num {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.6rem, 0.8vw, 0.75rem);
+  color: var(--cyan);
+  letter-spacing: 0.1em;
+}
+.arch-num.mag { color: var(--magenta); }
+.arch-title {
+  font-weight: 600;
+  font-size: clamp(0.7rem, 1.1vw, 0.95rem);
+  line-height: 1.2;
+}
+.arch-body {
+  font-size: clamp(0.6rem, 0.85vw, 0.78rem);
+  color: var(--muted);
+  line-height: 1.4;
+}
+.model-badge {
+  display: inline-flex; align-items: center; gap: 0.4em;
+  padding: 0.4em 1em;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(0,229,255,0.05));
+  border: 1px solid rgba(0,229,255,0.3);
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--cyan);
+}
+.model-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* =============================================
+   SLIDE 7 — AI ADVISOR (Chat + Tool Use)
+   ============================================= */
+#slide-7 { background: var(--bg); justify-content: center; }
+#slide-7 .orb-1 {
+  width: clamp(150px, 30vw, 380px);
+  height: clamp(150px, 30vw, 380px);
+  background: radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%);
+  top: 5%; left: -5%;
+}
+.advisor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  height: 100%;
+  padding: var(--pad);
+  align-items: center;
+  max-width: min(90vw, 1200px);
+  margin: 0 auto;
+  width: 100%;
+}
+.chat-mockup {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(8px, 1.2vw, 16px);
+  padding: clamp(0.8rem, 1.5vw, 1.2rem);
+  display: flex; flex-direction: column; gap: 0.6rem;
+  max-height: min(70vh, 500px);
+  overflow: hidden;
+}
+.chat-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.chat-dot { width: 8px; height: 8px; border-radius: 50%; }
+.msg-user {
+  align-self: flex-end;
+  background: rgba(0,229,255,0.12);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 10px 10px 2px 10px;
+  padding: 0.4em 0.8em;
+  font-size: var(--small-size);
+  color: var(--text);
+  max-width: 85%;
+}
+.msg-tool {
+  display: inline-flex; align-items: center; gap: 0.4em;
+  padding: 0.25em 0.7em;
+  border-radius: 999px;
+  background: rgba(255,45,120,0.08);
+  border: 1px solid rgba(255,45,120,0.2);
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.8vw, 0.72rem);
+  color: var(--magenta);
+}
+.msg-tool .tool-check { color: #00e5ff; }
+.msg-ai {
+  font-size: var(--small-size);
+  color: var(--muted);
+  line-height: 1.5;
+}
+.msg-ai strong { color: var(--text); }
+.tool-list {
+  display: flex; flex-direction: column; gap: 0.4rem;
+}
+.tool-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.8rem;
+  font-size: var(--small-size);
+}
+.tool-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+
+/* =============================================
+   SLIDE 8 — THINKING + MULTI-AGENT
+   ============================================= */
+#slide-8 { background: var(--bg); justify-content: center; }
+#slide-8 .orb-1 {
+  width: clamp(200px, 35vw, 450px);
+  height: clamp(200px, 35vw, 450px);
+  background: radial-gradient(circle, rgba(255,45,120,0.1) 0%, transparent 70%);
+  bottom: -10%; right: -5%;
+}
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  height: 100%;
+  padding: var(--pad);
+  align-items: center;
+  max-width: min(90vw, 1200px);
+  margin: 0 auto;
+  width: 100%;
+}
+.feature-panel {
+  display: flex; flex-direction: column; gap: var(--gap);
+}
+.thinking-box {
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: clamp(6px, 1vw, 12px);
+  padding: clamp(0.7rem, 1.5vw, 1.2rem);
+}
+.thinking-header {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--cyan);
+  margin-bottom: 0.5rem;
+}
+.thinking-text {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.8vw, 0.7rem);
+  color: rgba(0,229,255,0.55);
+  line-height: 1.6;
+}
+.agents-col { display: flex; flex-direction: column; gap: clamp(0.4rem, 0.8vw, 0.7rem); }
+.agent-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 10px);
+  padding: clamp(0.6rem, 1.2vw, 1rem);
+  display: flex; align-items: center; gap: 0.7rem;
+}
+.agent-emoji { font-size: clamp(1.2rem, 2vw, 1.8rem); flex-shrink: 0; }
+.agent-info { flex: 1; }
+.agent-name { font-weight: 600; font-size: var(--small-size); }
+.agent-role { font-size: clamp(0.6rem, 0.85vw, 0.75rem); color: var(--muted); }
+.agent-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.7vw, 0.65rem);
+  padding: 0.2em 0.6em;
+  border-radius: 4px;
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+.synthesis-card {
+  background: linear-gradient(135deg, rgba(0,229,255,0.06), rgba(255,45,120,0.06));
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 10px);
+  padding: clamp(0.5rem, 1vw, 0.9rem);
+  display: flex; align-items: center; gap: 0.6rem;
+}
+
+/* =============================================
+   SLIDE 9 — NL ALERTS + OFFBOARDING
+   ============================================= */
+#slide-9 { background: var(--bg); justify-content: center; }
+#slide-9 .orb-1 {
+  width: clamp(180px, 32vw, 420px);
+  height: clamp(180px, 32vw, 420px);
+  background: radial-gradient(circle, rgba(0,229,255,0.08) 0%, transparent 70%);
+  top: -8%; left: 20%;
+}
+.nl-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+  height: 100%;
+  padding: var(--pad);
+  align-items: center;
+  max-width: min(90vw, 1200px);
+  margin: 0 auto;
+  width: 100%;
+}
+.nl-panel { display: flex; flex-direction: column; gap: var(--gap); }
+.nl-input {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 10px);
+  padding: clamp(0.6rem, 1.2vw, 1rem);
+}
+.nl-prompt {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.nl-query {
+  font-size: var(--body-size);
+  color: var(--text);
+  font-style: italic;
+}
+.nl-arrow {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--cyan);
+}
+.nl-result {
+  background: rgba(0,229,255,0.04);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: clamp(6px, 1vw, 10px);
+  padding: clamp(0.6rem, 1.2vw, 1rem);
+}
+.nl-result-item {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  font-size: var(--small-size);
+  color: var(--muted);
+  padding: 0.25rem 0;
+}
+.nl-result-item .icon { color: var(--magenta); flex-shrink: 0; }
+.offboard-steps { display: flex; flex-direction: column; gap: 0.4rem; }
+.step-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem;
+  font-size: var(--small-size);
+}
+.step-num {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.7vw, 0.65rem);
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+.step-priority {
+  margin-left: auto;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.5rem, 0.65vw, 0.6rem);
+  padding: 0.15em 0.5em;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.step-priority.crit { background: rgba(255,45,120,0.15); color: var(--magenta); border: 1px solid rgba(255,45,120,0.3); }
+.step-priority.high { background: rgba(255,165,0,0.1); color: #ffaa00; border: 1px solid rgba(255,165,0,0.3); }
+.step-priority.med  { background: var(--cyan-dim); color: var(--cyan); border: 1px solid var(--border); }
+
+/* =============================================
+   SLIDE 10 — LIVE RESULT
+   ============================================= */
+#slide-10 {
+  background: var(--bg);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#slide-10 .orb-1 {
+  width: clamp(250px, 50vw, 650px);
+  height: clamp(250px, 50vw, 650px);
+  background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: none;
+}
+.result-content {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(0.6rem, 1.5vw, 1.5rem);
+  padding: var(--pad);
+  position: relative; z-index: 2;
+}
+.result-label {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.result-num {
+  font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+  font-size: clamp(3rem, 10vw, 9rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+.result-sub {
+  font-size: var(--h3-size);
+  color: var(--muted);
+}
+.result-breakdown {
+  display: flex; gap: clamp(0.8rem, 2vw, 2rem);
+  flex-wrap: wrap; justify-content: center;
+  margin-top: clamp(0.4rem, 1vw, 1rem);
+}
+.breakdown-item {
+  text-align: center;
+}
+.breakdown-val {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--body-size);
+  font-weight: 700;
+  color: var(--cyan);
+}
+.breakdown-label {
+  font-size: var(--small-size);
+  color: var(--muted);
+}
+.time-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.4em 1.2em;
+  border-radius: 999px;
+  background: rgba(0,229,255,0.08);
+  border: 1px solid rgba(0,229,255,0.2);
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--cyan);
+}
+
+/* =============================================
+   SLIDE 11 — TECH STACK
+   ============================================= */
+#slide-11 { background: var(--bg); justify-content: center; }
+#slide-11 .orb-1 {
+  width: clamp(180px, 30vw, 400px);
+  height: clamp(180px, 30vw, 400px);
+  background: radial-gradient(circle, rgba(255,45,120,0.1) 0%, transparent 70%);
+  bottom: -8%; left: -5%;
+}
+.tech-layout {
+  display: flex; flex-direction: column; justify-content: center;
+  height: 100%; padding: var(--pad); gap: var(--gap);
+  max-width: min(90vw, 1100px); margin: 0 auto; width: 100%;
+}
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.4rem, 0.8vw, 0.8rem);
+}
+.tech-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: clamp(6px, 1vw, 12px);
+  padding: clamp(0.6rem, 1.3vw, 1.2rem);
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.tech-label {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.75vw, 0.7rem);
+  color: var(--magenta);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tech-name {
+  font-weight: 600;
+  font-size: var(--small-size);
+  color: var(--text);
+}
+.tech-detail {
+  font-size: clamp(0.55rem, 0.8vw, 0.72rem);
+  color: var(--muted);
+  line-height: 1.4;
+}
+.complexity-row {
+  display: flex; gap: clamp(0.5rem, 1vw, 0.8rem);
+  flex-wrap: wrap;
+}
+.complexity-tag {
+  display: inline-flex; align-items: center; gap: 0.35em;
+  padding: 0.3em 0.8em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(0.55rem, 0.8vw, 0.72rem);
+  color: var(--muted);
+}
+.complexity-tag .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--cyan); }
+
+/* =============================================
+   SLIDE 12 — CTA
+   ============================================= */
+#slide-12 {
+  background: var(--bg);
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+#slide-12 .orb-1 {
+  width: clamp(250px, 45vw, 600px);
+  height: clamp(250px, 45vw, 600px);
+  background: radial-gradient(circle, rgba(0,229,255,0.14) 0%, transparent 70%);
+  top: -15%; right: -10%;
+}
+#slide-12 .orb-2 {
+  width: clamp(200px, 35vw, 480px);
+  height: clamp(200px, 35vw, 480px);
+  background: radial-gradient(circle, rgba(255,45,120,0.1) 0%, transparent 70%);
+  bottom: -10%; left: -8%;
+  animation-delay: 4s;
+}
+.cta-content {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(0.7rem, 1.5vw, 1.5rem);
+  padding: var(--pad);
+  position: relative; z-index: 2;
+  max-width: min(90vw, 700px);
+}
+.cta-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.cta-headline {
+  font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+  font-size: var(--title-size);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.cta-sub {
+  font-size: var(--body-size);
+  color: var(--muted);
+  max-width: 500px;
+  line-height: 1.6;
+}
+.cta-buttons {
+  display: flex; gap: var(--gap); flex-wrap: wrap; justify-content: center;
+  margin-top: clamp(0.3rem, 0.8vw, 0.8rem);
+}
+.btn-primary {
+  padding: 0.7em 2em;
+  border-radius: 999px;
+  background: var(--cyan);
+  color: var(--bg);
+  font-weight: 700;
+  font-size: var(--body-size);
+  border: none; cursor: pointer;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4em;
+  box-shadow: 0 0 clamp(15px, 3vw, 30px) var(--cyan-glow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 clamp(25px, 4vw, 50px) var(--cyan-glow);
+}
+.btn-secondary {
+  padding: 0.7em 2em;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  font-size: var(--body-size);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 0.4em;
+  transition: border-color 0.2s, background 0.2s;
+}
+.btn-secondary:hover { border-color: var(--cyan); background: var(--cyan-dim); }
+.url-chip {
+  font-family: 'Space Mono', monospace;
+  font-size: var(--small-size);
+  color: var(--cyan);
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  padding: 0.3em 1em;
+  border-radius: 999px;
+}
+</style>
+</head>
+<body>
+
+<!-- =============================================
+     NAV DOTS + PROGRESS
+     ============================================= -->
+<nav class="nav-dots" aria-label="Slide navigation">
+  <button class="nav-dot active" data-slide="0" aria-label="Slide 1"></button>
+  <button class="nav-dot" data-slide="1" aria-label="Slide 2"></button>
+  <button class="nav-dot" data-slide="2" aria-label="Slide 3"></button>
+  <button class="nav-dot" data-slide="3" aria-label="Slide 4"></button>
+  <button class="nav-dot" data-slide="4" aria-label="Slide 5"></button>
+  <button class="nav-dot" data-slide="5" aria-label="Slide 6"></button>
+  <button class="nav-dot" data-slide="6" aria-label="Slide 7"></button>
+  <button class="nav-dot" data-slide="7" aria-label="Slide 8"></button>
+  <button class="nav-dot" data-slide="8" aria-label="Slide 9"></button>
+  <button class="nav-dot" data-slide="9" aria-label="Slide 10"></button>
+  <button class="nav-dot" data-slide="10" aria-label="Slide 11"></button>
+  <button class="nav-dot" data-slide="11" aria-label="Slide 12"></button>
+</nav>
+
+<div class="progress-bar" id="progress"></div>
+
+<main>
+
+<!-- =============================================
+     SLIDE 1 — TITLE
+     ============================================= -->
+<section class="slide" id="slide-1">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:var(--pad);gap:var(--gap);position:relative;z-index:2;">
+    <div class="reveal" style="display:flex;align-items:center;gap:0.8rem;margin-bottom:0.4rem;">
+      <div class="title-logo">🛡</div>
+    </div>
+
+    <h1 class="title-main reveal d1">
+      <span class="glow">SaaS</span><span style="color:var(--text);">-Scrub</span>
+    </h1>
+
+    <p class="title-sub reveal d2">
+      The AI-powered SaaS intelligence layer that finds and eliminates software waste — before your CFO does.
+    </p>
+
+    <div class="title-tags reveal d3">
+      <span class="tag">Claude Opus 4.6</span>
+      <span class="tag">Tool Use</span>
+      <span class="tag">Streaming</span>
+      <span class="tag mag">Multi-Agent</span>
+      <span class="tag mag">Extended Thinking</span>
+    </div>
+
+    <div class="reveal d4" style="margin-top:clamp(0.8rem,2vw,2rem);font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--muted);">
+      Built at Hackathon 2026
+    </div>
+  </div>
+
+  <div class="slide-num">01 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 2 — THE PROBLEM
+     ============================================= -->
+<section class="slide" id="slide-2">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="problem-layout" style="position:relative;z-index:2;">
+    <p class="problem-label reveal">// The Problem</p>
+
+    <h2 class="problem-heading reveal d1">
+      Companies are bleeding money<br>
+      <span class="glow-mag">through unused software</span>
+    </h2>
+
+    <div class="stats-row reveal d2">
+      <div class="stat-card">
+        <div class="stat-num glow">$530B</div>
+        <div class="stat-desc">global enterprise SaaS spend per year</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num glow-mag">30%</div>
+        <div class="stat-desc">is pure waste — zombie apps, unused seats, redundant tools</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--text)">$159B</div>
+        <div class="stat-desc">wasted annually — and most finance teams have no visibility</div>
+      </div>
+    </div>
+
+    <div class="divider reveal d3"></div>
+
+    <div class="reveal d3" style="display:flex;gap:clamp(0.8rem,2vw,2rem);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:0.5rem;font-size:var(--body-size);color:var(--muted);">
+        <span style="color:var(--magenta);font-size:1.1em;">●</span> Employees share logins to avoid seat costs
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;font-size:var(--body-size);color:var(--muted);">
+        <span style="color:var(--magenta);font-size:1.1em;">●</span> No one knows when contracts auto-renew
+      </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;font-size:var(--body-size);color:var(--muted);">
+        <span style="color:var(--magenta);font-size:1.1em;">●</span> Offboarded employees keep paying subscriptions
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">02 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 3 — THE SOLUTION
+     ============================================= -->
+<section class="slide" id="slide-3">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="solution-layout" style="position:relative;z-index:2;">
+    <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// The Solution</p>
+
+    <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+      One intelligent platform.<br><span class="glow">Complete SaaS control.</span>
+    </h2>
+
+    <p class="reveal d2" style="font-size:var(--body-size);color:var(--muted);max-width:700px;line-height:1.6;">
+      SaaS-Scrub connects to your existing data sources and gives every team a real-time view of their entire software stack — with AI surfacing insights, not just numbers.
+    </p>
+
+    <div class="features-grid reveal d3">
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-name">SaaS Stack</div>
+        <div class="feat-desc">Every app, seat count, spend, and utilization in one view</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💸</div>
+        <div class="feat-name">Spend Intelligence</div>
+        <div class="feat-desc">Plaid, CSV, and bank feed integration for real-time spend</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔔</div>
+        <div class="feat-name">Smart Alerts</div>
+        <div class="feat-desc">Zombie apps, unused seats, renewals, shadow IT</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📄</div>
+        <div class="feat-name">Contract Manager</div>
+        <div class="feat-desc">Renewal dates, auto-renew flags, notice windows</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">👤</div>
+        <div class="feat-name">Offboarding</div>
+        <div class="feat-desc">Automated app revocation checklists per employee</div>
+      </div>
+      <div class="feat-card" style="border-color:rgba(0,229,255,0.3);background:rgba(0,229,255,0.06);">
+        <div class="feat-icon">🤖</div>
+        <div class="feat-name" style="color:var(--cyan);">AI Advisor</div>
+        <div class="feat-desc">Claude Opus 4.6 with live DB tool access</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">03 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 4 — DASHBOARD DEMO
+     ============================================= -->
+<section class="slide" id="slide-demo-a">
+  <div class="grid-bg"></div>
+  <div class="orb orb-d"></div>
+
+  <div style="display:flex;flex-direction:column;height:100%;padding:var(--pad) var(--pad) calc(var(--pad)*0.65);gap:clamp(0.35rem,0.7vw,0.6rem);position:relative;z-index:2;max-width:min(97vw,1440px);margin:0 auto;width:100%;">
+
+    <!-- Header row -->
+    <div class="reveal" style="display:flex;align-items:baseline;gap:1rem;flex-shrink:0;">
+      <p style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;">// The Product</p>
+      <h2 style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:clamp(1rem,2.1vw,1.65rem);font-weight:700;letter-spacing:-0.02em;line-height:1;">
+        A real platform. <span class="glow">Running right now.</span>
+      </h2>
+    </div>
+
+    <!-- Browser window -->
+    <div class="browser-win reveal d1">
+
+      <!-- Browser chrome -->
+      <div class="browser-chrome">
+        <div class="browser-dots">
+          <div class="browser-dot" style="background:#ff5f57;"></div>
+          <div class="browser-dot" style="background:#febc2e;"></div>
+          <div class="browser-dot" style="background:#28c840;"></div>
+        </div>
+        <div class="browser-url">saas-scrub.com/apps</div>
+      </div>
+
+      <!-- App layout -->
+      <div style="flex:1;min-height:0;display:flex;overflow:hidden;">
+
+        <!-- Sidebar -->
+        <div class="app-sidebar">
+          <div class="sidebar-logo">🛡</div>
+          <div class="sidebar-icon active" title="Apps">📊</div>
+          <div class="sidebar-icon">💸</div>
+          <div class="sidebar-icon sidebar-badge">🔔</div>
+          <div class="sidebar-icon">📄</div>
+          <div class="sidebar-icon">👤</div>
+          <div class="sidebar-icon" style="margin-top:auto;">✨</div>
+        </div>
+
+        <!-- Main content -->
+        <div style="flex:1;overflow:hidden;padding:clamp(0.45rem,0.9vw,0.75rem);display:flex;flex-direction:column;gap:clamp(0.32rem,0.6vw,0.52rem);">
+
+          <!-- Page title -->
+          <div style="font-size:clamp(0.58rem,0.82vw,0.75rem);color:rgba(232,244,255,0.7);font-weight:600;flex-shrink:0;">All Applications</div>
+
+          <!-- KPI cards -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(0.28rem,0.48vw,0.42rem);flex-shrink:0;">
+            <div class="kpi-card">
+              <div class="kpi-label">Monthly Spend</div>
+              <div class="kpi-value">$43,900</div>
+              <div class="kpi-sub" style="color:rgba(255,45,120,0.75);">▲ 8% vs prior month</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Active Apps</div>
+              <div class="kpi-value">18</div>
+              <div class="kpi-sub" style="color:rgba(232,244,255,0.28);">across 6 categories</div>
+            </div>
+            <div class="kpi-card danger">
+              <div class="kpi-label">Open Alerts</div>
+              <div class="kpi-value danger">7</div>
+              <div class="kpi-sub" style="color:rgba(255,45,120,0.6);">3 critical · action needed</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Avg Utilization</div>
+              <div class="kpi-value">61%</div>
+              <div class="kpi-sub" style="color:rgba(0,217,126,0.65);">↓ 4% this quarter</div>
+            </div>
+          </div>
+
+          <!-- Apps table -->
+          <div style="flex:1;min-height:0;border:1px solid rgba(0,229,255,0.1);border-radius:8px;overflow:hidden;background:rgba(0,229,255,0.012);">
+
+            <!-- Table header -->
+            <div style="display:grid;grid-template-columns:1.75fr 0.85fr 0.9fr 1.6fr 0.82fr;padding:0.32rem 0.65rem;border-bottom:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.03);">
+              <span class="th">Application</span>
+              <span class="th">Monthly</span>
+              <span class="th">Seats</span>
+              <span class="th">Utilization</span>
+              <span class="th">Status</span>
+            </div>
+
+            <!-- Notion — ZOMBIE -->
+            <div class="app-row flagged">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#191919;color:#e8f4ff;">N</div>
+                <span class="app-name-text">Notion</span>
+              </div>
+              <span class="app-mono">$3,200</span>
+              <span class="app-mono">109 / 150</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:27%;background:#ff4757;box-shadow:0 0 5px rgba(255,71,87,0.5);"></div></div>
+                <span class="util-pct" style="color:#ff4757;">27%</span>
+              </div>
+              <div><span class="status-badge status-zombie">ZOMBIE</span></div>
+            </div>
+
+            <!-- Salesforce — REVIEW -->
+            <div class="app-row">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#00a1e0;">S</div>
+                <span class="app-name-text">Salesforce</span>
+              </div>
+              <span class="app-mono">$8,400</span>
+              <span class="app-mono">42 / 80</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:53%;background:#ffb142;box-shadow:0 0 5px rgba(255,177,66,0.4);"></div></div>
+                <span class="util-pct" style="color:#ffb142;">53%</span>
+              </div>
+              <div><span class="status-badge status-review">REVIEW</span></div>
+            </div>
+
+            <!-- Slack — HEALTHY -->
+            <div class="app-row">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#4a154b;">💬</div>
+                <span class="app-name-text">Slack</span>
+              </div>
+              <span class="app-mono">$6,200</span>
+              <span class="app-mono">118 / 130</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:91%;background:#00d97e;box-shadow:0 0 5px rgba(0,217,126,0.4);"></div></div>
+                <span class="util-pct" style="color:#00d97e;">91%</span>
+              </div>
+              <div><span class="status-badge status-healthy">HEALTHY</span></div>
+            </div>
+
+            <!-- Asana — ZOMBIE -->
+            <div class="app-row flagged">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#f06a6a;">A</div>
+                <span class="app-name-text">Asana</span>
+              </div>
+              <span class="app-mono">$2,800</span>
+              <span class="app-mono">22 / 120</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:18%;background:#ff4757;box-shadow:0 0 5px rgba(255,71,87,0.5);"></div></div>
+                <span class="util-pct" style="color:#ff4757;">18%</span>
+              </div>
+              <div><span class="status-badge status-zombie">ZOMBIE</span></div>
+            </div>
+
+            <!-- GitHub — HEALTHY -->
+            <div class="app-row">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#24292e;">🐙</div>
+                <span class="app-name-text">GitHub</span>
+              </div>
+              <span class="app-mono">$840</span>
+              <span class="app-mono">88 / 100</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:88%;background:#00d97e;box-shadow:0 0 5px rgba(0,217,126,0.4);"></div></div>
+                <span class="util-pct" style="color:#00d97e;">88%</span>
+              </div>
+              <div><span class="status-badge status-healthy">HEALTHY</span></div>
+            </div>
+
+            <!-- Monday — ZOMBIE -->
+            <div class="app-row flagged">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#f62b54;">M</div>
+                <span class="app-name-text">Monday.com</span>
+              </div>
+              <span class="app-mono">$1,960</span>
+              <span class="app-mono">18 / 100</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:18%;background:#ff4757;box-shadow:0 0 5px rgba(255,71,87,0.5);"></div></div>
+                <span class="util-pct" style="color:#ff4757;">18%</span>
+              </div>
+              <div><span class="status-badge status-zombie">ZOMBIE</span></div>
+            </div>
+
+            <!-- Figma — HEALTHY -->
+            <div class="app-row">
+              <div class="app-name-cell">
+                <div class="app-icon" style="background:#1e1e1e;">🎨</div>
+                <span class="app-name-text">Figma</span>
+              </div>
+              <span class="app-mono">$1,100</span>
+              <span class="app-mono">55 / 60</span>
+              <div class="util-bar-wrap">
+                <div class="util-bar-track"><div class="util-bar-fill" style="width:92%;background:#00d97e;box-shadow:0 0 5px rgba(0,217,126,0.4);"></div></div>
+                <span class="util-pct" style="color:#00d97e;">92%</span>
+              </div>
+              <div><span class="status-badge status-healthy">HEALTHY</span></div>
+            </div>
+
+          </div><!-- /table -->
+        </div><!-- /main content -->
+      </div><!-- /app layout -->
+    </div><!-- /browser win -->
+  </div>
+
+  <div class="slide-num">04 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 5 — AI ADVISOR DEMO
+     ============================================= -->
+<section class="slide" id="slide-demo-b">
+  <div class="grid-bg"></div>
+  <div class="orb orb-d"></div>
+
+  <div style="display:flex;flex-direction:column;height:100%;padding:var(--pad) var(--pad) calc(var(--pad)*0.65);gap:clamp(0.35rem,0.7vw,0.6rem);position:relative;z-index:2;max-width:min(97vw,1440px);margin:0 auto;width:100%;">
+
+    <!-- Header -->
+    <div class="reveal" style="display:flex;align-items:baseline;gap:1rem;flex-shrink:0;">
+      <p style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--magenta);letter-spacing:0.12em;text-transform:uppercase;white-space:nowrap;">// AI in Action</p>
+      <h2 style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:clamp(1rem,2.1vw,1.65rem);font-weight:700;letter-spacing:-0.02em;line-height:1;">
+        Claude queries your database. <span class="glow-mag">Thinks. Acts. Answers.</span>
+      </h2>
+    </div>
+
+    <!-- Browser window -->
+    <div class="browser-win reveal d1">
+
+      <!-- Browser chrome -->
+      <div class="browser-chrome">
+        <div class="browser-dots">
+          <div class="browser-dot" style="background:#ff5f57;"></div>
+          <div class="browser-dot" style="background:#febc2e;"></div>
+          <div class="browser-dot" style="background:#28c840;"></div>
+        </div>
+        <div class="browser-url">saas-scrub.com/advisor</div>
+      </div>
+
+      <!-- App layout -->
+      <div style="flex:1;min-height:0;display:flex;overflow:hidden;">
+
+        <!-- Sidebar -->
+        <div class="app-sidebar">
+          <div class="sidebar-logo">🛡</div>
+          <div class="sidebar-icon">📊</div>
+          <div class="sidebar-icon">💸</div>
+          <div class="sidebar-icon sidebar-badge">🔔</div>
+          <div class="sidebar-icon">📄</div>
+          <div class="sidebar-icon">👤</div>
+          <div class="sidebar-icon active" style="margin-top:auto;">✨</div>
+        </div>
+
+        <!-- Advisor main -->
+        <div style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+
+          <!-- Advisor header bar -->
+          <div style="border-bottom:1px solid rgba(0,229,255,0.1);padding:clamp(0.35rem,0.7vw,0.6rem) clamp(0.5rem,1vw,0.9rem);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;background:rgba(0,229,255,0.015);">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <span style="font-size:clamp(0.6rem,0.9vw,0.82rem);font-weight:600;color:#e8f4ff;">AI Advisor</span>
+              <!-- Tabs -->
+              <div style="display:flex;gap:0.2rem;margin-left:0.5rem;">
+                <div style="padding:0.15em 0.6em;border-radius:5px;background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);font-size:clamp(0.45rem,0.6vw,0.56rem);font-family:'Space Mono',monospace;color:var(--cyan);">SaaS Advisor</div>
+                <div style="padding:0.15em 0.6em;border-radius:5px;font-size:clamp(0.45rem,0.6vw,0.56rem);font-family:'Space Mono',monospace;color:rgba(232,244,255,0.35);">Savings Committee</div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+              <!-- Thinking toggle — ON -->
+              <div style="display:flex;align-items:center;gap:0.3rem;">
+                <div style="width:24px;height:13px;border-radius:7px;background:rgba(0,229,255,0.8);position:relative;flex-shrink:0;">
+                  <div style="position:absolute;right:2px;top:2px;width:9px;height:9px;border-radius:50%;background:white;"></div>
+                </div>
+                <span style="font-size:clamp(0.42rem,0.55vw,0.52rem);font-family:'Space Mono',monospace;color:rgba(0,229,255,0.8);">Enable Thinking</span>
+              </div>
+              <!-- Model badge -->
+              <div style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.2em 0.6em;border-radius:999px;background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.25);">
+                <div style="width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:pulse 1.5s ease-in-out infinite;"></div>
+                <span style="font-family:'Space Mono',monospace;font-size:clamp(0.4rem,0.52vw,0.5rem);color:var(--cyan);">claude-opus-4-6</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat area -->
+          <div style="flex:1;overflow:hidden;padding:clamp(0.45rem,0.9vw,0.75rem);display:flex;flex-direction:column;gap:clamp(0.4rem,0.7vw,0.6rem);">
+
+            <!-- User message -->
+            <div style="display:flex;justify-content:flex-end;">
+              <div style="background:rgba(0,229,255,0.14);border:1px solid rgba(0,229,255,0.22);border-radius:10px 10px 2px 10px;padding:0.35em 0.75em;font-size:clamp(0.52rem,0.75vw,0.68rem);color:#e8f4ff;max-width:70%;">
+                Find all our SaaS waste and tell me exactly what to cut
+              </div>
+            </div>
+
+            <!-- Claude response -->
+            <div style="display:flex;gap:0.4rem;align-items:flex-start;">
+
+              <!-- Avatar -->
+              <div style="width:clamp(18px,2.2vw,24px);height:clamp(18px,2.2vw,24px);border-radius:50%;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.3);display:flex;align-items:center;justify-content:center;font-size:clamp(0.5rem,0.75vw,0.68rem);flex-shrink:0;margin-top:0.1rem;">🤖</div>
+
+              <div style="flex:1;display:flex;flex-direction:column;gap:clamp(0.28rem,0.5vw,0.42rem);min-width:0;">
+
+                <!-- Thinking panel — collapsed but visible -->
+                <div style="background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.18);border-radius:7px;padding:0.3rem 0.55rem;display:flex;align-items:center;gap:0.35rem;">
+                  <span style="font-size:clamp(0.5rem,0.7vw,0.64rem);">🧠</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:clamp(0.42rem,0.56vw,0.52rem);color:rgba(0,229,255,0.75);">Claude's Reasoning</span>
+                  <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:clamp(0.38rem,0.5vw,0.46rem);color:rgba(232,244,255,0.3);">8,000 token budget · done ▸ View</span>
+                </div>
+
+                <!-- Tool call badges -->
+                <div style="display:flex;flex-wrap:wrap;gap:0.28rem;">
+                  <div style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.22em 0.6em;border-radius:999px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.18);font-family:'Space Mono',monospace;font-size:clamp(0.4rem,0.54vw,0.5rem);color:rgba(0,229,255,0.8);">⚡ get_saas_overview <span style="color:#00d97e;">✓</span> <span style="color:rgba(232,244,255,0.35);">$43,900/mo · 18 apps</span></div>
+                  <div style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.22em 0.6em;border-radius:999px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.18);font-family:'Space Mono',monospace;font-size:clamp(0.4rem,0.54vw,0.5rem);color:rgba(0,229,255,0.8);">⚡ get_underutilized_apps <span style="color:#00d97e;">✓</span> <span style="color:rgba(232,244,255,0.35);">7 flagged</span></div>
+                  <div style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.22em 0.6em;border-radius:999px;background:rgba(0,229,255,0.07);border:1px solid rgba(0,229,255,0.18);font-family:'Space Mono',monospace;font-size:clamp(0.4rem,0.54vw,0.5rem);color:rgba(0,229,255,0.8);">⚡ get_contracts_expiring <span style="color:#00d97e;">✓</span> <span style="color:rgba(232,244,255,0.35);">3 in window</span></div>
+                </div>
+
+                <!-- Response text -->
+                <div style="font-size:clamp(0.5rem,0.72vw,0.65rem);color:rgba(232,244,255,0.55);line-height:1.5;">
+                  I found <strong style="color:#e8f4ff;">$126,960/yr</strong> in recoverable spend across 3 categories:
+                </div>
+
+                <!-- Mini table -->
+                <div style="border:1px solid rgba(0,229,255,0.14);border-radius:6px;overflow:hidden;background:rgba(0,229,255,0.02);">
+                  <div style="display:grid;grid-template-columns:1.4fr 1.8fr 0.9fr 1fr;padding:0.26rem 0.5rem;border-bottom:1px solid rgba(0,229,255,0.1);background:rgba(0,229,255,0.04);">
+                    <span class="th">Category</span>
+                    <span class="th">Apps</span>
+                    <span class="th">Monthly</span>
+                    <span class="th">Action</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1.4fr 1.8fr 0.9fr 1fr;padding:0.24rem 0.5rem;border-bottom:1px solid rgba(0,229,255,0.06);align-items:center;">
+                    <span style="font-size:clamp(0.44rem,0.58vw,0.54rem);color:rgba(232,244,255,0.65);">Zombie Apps</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.52rem);color:rgba(232,244,255,0.38);">Notion, Asana, Monday</span>
+                    <span style="font-family:'Space Mono',monospace;font-size:clamp(0.44rem,0.58vw,0.54rem);color:#ff4757;">$8,180</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.5rem);color:#ff2d78;">🔴 Cancel</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1.4fr 1.8fr 0.9fr 1fr;padding:0.24rem 0.5rem;border-bottom:1px solid rgba(0,229,255,0.06);align-items:center;">
+                    <span style="font-size:clamp(0.44rem,0.58vw,0.54rem);color:rgba(232,244,255,0.65);">Unused Seats</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.52rem);color:rgba(232,244,255,0.38);">Salesforce, Zoom</span>
+                    <span style="font-family:'Space Mono',monospace;font-size:clamp(0.44rem,0.58vw,0.54rem);color:#ffb142;">$1,100</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.5rem);color:#ffb142;">🟡 Right-size</span>
+                  </div>
+                  <div style="display:grid;grid-template-columns:1.4fr 1.8fr 0.9fr 1fr;padding:0.24rem 0.5rem;align-items:center;">
+                    <span style="font-size:clamp(0.44rem,0.58vw,0.54rem);color:rgba(232,244,255,0.65);">Redundant PM</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.52rem);color:rgba(232,244,255,0.38);">Asana + Monday + Notion</span>
+                    <span style="font-family:'Space Mono',monospace;font-size:clamp(0.44rem,0.58vw,0.54rem);color:#ffb142;">$650</span>
+                    <span style="font-size:clamp(0.42rem,0.55vw,0.5rem);color:#00d97e;">🟠 Consolidate</span>
+                  </div>
+                </div>
+
+                <!-- Total row -->
+                <div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0.5rem;background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:6px;">
+                  <span style="font-family:'Space Mono',monospace;font-size:clamp(0.42rem,0.56vw,0.52rem);color:rgba(232,244,255,0.45);">Total recoverable:</span>
+                  <span style="font-family:'Space Mono',monospace;font-size:clamp(0.55rem,0.8vw,0.72rem);font-weight:700;color:var(--cyan);">$126,960 / year</span>
+                  <span style="margin-left:auto;font-family:'Space Mono',monospace;font-size:clamp(0.38rem,0.5vw,0.46rem);color:rgba(232,244,255,0.28);">3 tool calls · ~8s · opus-4-6</span>
+                </div>
+
+              </div>
+            </div>
+
+          </div><!-- /chat area -->
+        </div><!-- /advisor main -->
+      </div><!-- /app layout -->
+    </div><!-- /browser win -->
+  </div>
+
+  <div class="slide-num">05 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 6 — CLAUDE ARCHITECTURE
+     ============================================= -->
+<section class="slide" id="slide-6">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="arch-layout" style="position:relative;z-index:2;">
+    <div class="reveal" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+      <p style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// Claude Integration Architecture</p>
+      <div class="model-badge">
+        <div class="dot"></div>
+        claude-opus-4-6 · live
+      </div>
+    </div>
+
+    <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+      Not just a chatbot.<br><span class="glow">An agentic intelligence layer.</span>
+    </h2>
+
+    <div class="arch-row reveal d2">
+      <div class="arch-card">
+        <div class="arch-num">01 — INPUT</div>
+        <div class="arch-title">Streaming SSE</div>
+        <div class="arch-body">Real-time token streaming via Server-Sent Events. Text and reasoning appear live as Claude generates.</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">02 — THINK</div>
+        <div class="arch-title">Extended Thinking</div>
+        <div class="arch-body">8,000 token thinking budget. Claude's internal reasoning is visible in the UI in a collapsible panel.</div>
+      </div>
+      <div class="arch-card">
+        <div class="arch-num">03 — ACT</div>
+        <div class="arch-title">Tool Use Loop</div>
+        <div class="arch-body">8 custom DB tools. Claude runs up to 8 agentic iterations — querying, acting, and refining its answer.</div>
+      </div>
+      <div class="arch-card mag">
+        <div class="arch-num mag">04 — SCALE</div>
+        <div class="arch-title">Multi-Agent</div>
+        <div class="arch-body">3 specialized sub-agents run in parallel via Promise.all(). A 4th synthesis agent unifies their output.</div>
+      </div>
+    </div>
+
+    <div class="reveal d3" style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+      <span class="tag">@anthropic-ai/sdk</span>
+      <span class="tag">messages.stream()</span>
+      <span class="tag">tool_use blocks</span>
+      <span class="tag">thinking: enabled</span>
+      <span class="tag mag">Promise.all() agents</span>
+      <span class="tag mag">NDJSON stream protocol</span>
+    </div>
+  </div>
+
+  <div class="slide-num">06 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 7 — AI ADVISOR (Chat + Tool Use)
+     ============================================= -->
+<section class="slide" id="slide-7">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="advisor-layout" style="position:relative;z-index:2;">
+    <!-- Left: explanation -->
+    <div style="display:flex;flex-direction:column;gap:var(--gap);">
+      <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// Feature 01</p>
+
+      <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+        SaaS Advisor<br><span class="glow">with Tool Use</span>
+      </h2>
+
+      <div class="reveal d2 tool-list">
+        <div class="tool-item">
+          <div class="tool-dot" style="background:var(--cyan);"></div>
+          <span style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);">get_saas_overview</span>
+          <span style="font-size:var(--small-size);color:var(--muted);margin-left:auto;">spend, seats, alerts</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot" style="background:var(--cyan);"></div>
+          <span style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);">get_underutilized_apps</span>
+          <span style="font-size:var(--small-size);color:var(--muted);margin-left:auto;">waste detection</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot" style="background:var(--cyan);"></div>
+          <span style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);">get_contracts_expiring</span>
+          <span style="font-size:var(--small-size);color:var(--muted);margin-left:auto;">renewals</span>
+        </div>
+        <div class="tool-item">
+          <div class="tool-dot" style="background:var(--magenta);"></div>
+          <span style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--magenta);">create_alert</span>
+          <span style="font-size:var(--small-size);color:var(--muted);margin-left:auto;">write to DB</span>
+        </div>
+      </div>
+
+      <p class="reveal d3" style="font-size:var(--body-size);color:var(--muted);line-height:1.6;">
+        Claude queries your <strong style="color:var(--text)">live database</strong> across up to 8 agentic iterations. Every tool call and text delta streams to the UI in real time.
+      </p>
+    </div>
+
+    <!-- Right: chat mockup -->
+    <div class="chat-mockup reveal d2">
+      <div class="chat-header">
+        <div class="chat-dot" style="background:#ff5f57;"></div>
+        <div class="chat-dot" style="background:#febc2e;"></div>
+        <div class="chat-dot" style="background:#28c840;"></div>
+        <span style="margin-left:0.5rem;font-family:'Space Mono',monospace;font-size:clamp(0.55rem,0.8vw,0.7rem);color:var(--muted);">SaaS Advisor — claude-opus-4-6</span>
+      </div>
+
+      <div class="msg-user">"Where is our biggest SaaS waste?"</div>
+
+      <div style="display:flex;flex-direction:column;gap:0.3rem;">
+        <div class="msg-tool"><span>⚡</span> get_saas_overview <span class="tool-check">✓</span> $43,900/mo · 18 apps</div>
+        <div class="msg-tool"><span>⚡</span> get_underutilized_apps <span class="tool-check">✓</span> 7 apps found</div>
+        <div class="msg-tool"><span>⚡</span> get_contracts_expiring <span class="tool-check">✓</span> 3 in notice window</div>
+      </div>
+
+      <div class="msg-ai">
+        I've identified <strong>3 critical areas</strong> totalling <strong style="color:var(--cyan)">$126,960/yr</strong> in recoverable spend:<br><br>
+        🔴 <strong>Zombie apps</strong> — $8,180/mo across 5 tools (Notion 27%, Asana 18%, Monday 18%)<br>
+        🟡 <strong>Redundant stack</strong> — 3 overlapping PM tools<br>
+        🟢 <strong>Unused seats</strong> — Salesforce $2,945/mo wasted
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">07 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 8 — THINKING + MULTI-AGENT
+     ============================================= -->
+<section class="slide" id="slide-8">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="two-col" style="position:relative;z-index:2;">
+    <!-- Left: Extended Thinking -->
+    <div class="feature-panel">
+      <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// Feature 02</p>
+
+      <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+        Extended<br><span class="glow">Thinking Panel</span>
+      </h2>
+
+      <div class="thinking-box reveal d2">
+        <div class="thinking-header">
+          <span>🧠</span>
+          <span>Claude's Reasoning</span>
+          <span style="margin-left:auto;font-size:clamp(0.5rem,0.65vw,0.6rem);color:var(--muted);">budget: 8,000 tokens</span>
+        </div>
+        <div class="thinking-text">
+          Let me think about this carefully. The user has Notion at 27%<br>
+          utilization — 109 unused seats. At $3,200/mo that's $2,289<br>
+          in pure waste. But Asana and Monday.com overlap in the same<br>
+          category. This is a redundancy play, not just underutilization...<br>
+          <br>
+          The highest-leverage action is consolidation, not just right-sizing.<br>
+          I should quantify both the waste and the redundancy savings...
+        </div>
+      </div>
+
+      <p class="reveal d3" style="font-size:var(--small-size);color:var(--muted);line-height:1.5;">
+        Toggle <strong style="color:var(--text)">Enable Thinking</strong> in the UI. Claude's internal chain-of-thought streams live alongside the response in a collapsible panel.
+      </p>
+    </div>
+
+    <!-- Right: Multi-Agent -->
+    <div class="feature-panel">
+      <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--magenta);letter-spacing:0.12em;text-transform:uppercase;">// Feature 03</p>
+
+      <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+        Savings<br><span class="glow-mag">Committee</span>
+      </h2>
+
+      <div class="agents-col reveal d2">
+        <div class="agent-card">
+          <div class="agent-emoji">💰</div>
+          <div class="agent-info">
+            <div class="agent-name">CFO Advisor</div>
+            <div class="agent-role">Cost, ROI, budget leakage</div>
+          </div>
+          <div class="agent-badge">claude-sonnet</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-emoji">🛡️</div>
+          <div class="agent-info">
+            <div class="agent-name">IT Risk &amp; Security</div>
+            <div class="agent-role">Shadow IT, compliance, data sprawl</div>
+          </div>
+          <div class="agent-badge">claude-sonnet</div>
+        </div>
+        <div class="agent-card">
+          <div class="agent-emoji">🤝</div>
+          <div class="agent-info">
+            <div class="agent-name">Vendor Negotiator</div>
+            <div class="agent-role">Contract leverage, auto-renewals</div>
+          </div>
+          <div class="agent-badge">claude-sonnet</div>
+        </div>
+        <div class="synthesis-card">
+          <div style="font-size:clamp(1rem,1.8vw,1.4rem)">✨</div>
+          <div>
+            <div style="font-size:var(--small-size);font-weight:600;color:var(--text);">Synthesis Agent</div>
+            <div style="font-size:clamp(0.55rem,0.8vw,0.72rem);color:var(--muted);">claude-opus · unifies all 3 perspectives → priority action plan</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="reveal d3" style="font-size:var(--small-size);color:var(--muted);">
+        All 3 agents run via <span style="font-family:'Space Mono',monospace;color:var(--cyan)">Promise.all()</span> — 4 total Claude calls, 1 unified output.
+      </p>
+    </div>
+  </div>
+
+  <div class="slide-num">08 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 9 — NL ALERTS + OFFBOARDING
+     ============================================= -->
+<section class="slide" id="slide-9">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="nl-layout" style="position:relative;z-index:2;">
+    <!-- Left: NL Alert Rules -->
+    <div class="nl-panel">
+      <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// Feature 04</p>
+
+      <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+        Natural Language<br><span class="glow">Alert Rules</span>
+      </h2>
+
+      <div class="nl-input reveal d2">
+        <div class="nl-prompt">User types →</div>
+        <div class="nl-query">"Alert me when any app has less than 50% seat utilization"</div>
+      </div>
+
+      <div class="nl-arrow reveal d3">
+        <span>↓</span>
+        <span style="font-family:'Space Mono',monospace;font-size:clamp(0.55rem,0.75vw,0.68rem);">Claude Haiku interprets + scans live DB + creates alerts</span>
+      </div>
+
+      <div class="nl-result reveal d4">
+        <div class="nl-result-item"><span class="icon">⚠</span> Notion — 27% utilization · $2,289/mo wasted</div>
+        <div class="nl-result-item"><span class="icon">⚠</span> Asana — 18% utilization · $1,568/mo wasted</div>
+        <div class="nl-result-item"><span class="icon">⚠</span> Monday.com — 18% utilization · $1,148/mo wasted</div>
+        <div style="font-family:'Space Mono',monospace;font-size:clamp(0.55rem,0.75vw,0.68rem);color:var(--cyan);margin-top:0.4rem;">✓ 5 alerts created in database</div>
+      </div>
+    </div>
+
+    <!-- Right: AI Offboarding -->
+    <div class="nl-panel">
+      <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--magenta);letter-spacing:0.12em;text-transform:uppercase;">// Feature 05</p>
+
+      <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+        AI Offboarding<br><span class="glow-mag">Intelligence</span>
+      </h2>
+
+      <p class="reveal d2" style="font-size:var(--small-size);color:var(--muted);line-height:1.5;">
+        Claude Sonnet analyzes each employee's app roles and generates app-specific revocation steps — not generic ones.
+      </p>
+
+      <div class="offboard-steps reveal d3">
+        <div class="step-item">
+          <div class="step-num">01</div>
+          <span style="font-size:var(--small-size);flex:1;">Transfer Notion workspaces to manager before revoking</span>
+          <div class="step-priority crit">CRITICAL</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">02</div>
+          <span style="font-size:var(--small-size);flex:1;">Revoke GitHub org owner — rotate secrets first</span>
+          <div class="step-priority crit">CRITICAL</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">03</div>
+          <span style="font-size:var(--small-size);flex:1;">Remove Salesforce admin license — release paid seat</span>
+          <div class="step-priority high">HIGH</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">04</div>
+          <span style="font-size:var(--small-size);flex:1;">Deactivate Figma team admin · export project files</span>
+          <div class="step-priority high">HIGH</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">05</div>
+          <span style="font-size:var(--small-size);flex:1;">Cancel Zoom license · $8/mo recovered</span>
+          <div class="step-priority med">MEDIUM</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-num">09 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 10 — LIVE RESULT
+     ============================================= -->
+<section class="slide" id="slide-10">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="result-content" style="position:relative;z-index:2;">
+    <div class="reveal">
+      <span class="tag">Live Demo Result</span>
+    </div>
+
+    <div class="result-label reveal d1">Recoverable annual SaaS spend found in one query</div>
+
+    <div class="result-num glow reveal d2" id="counter">$0</div>
+
+    <div class="result-sub reveal d3">per year in waste — identified automatically</div>
+
+    <div class="result-breakdown reveal d4">
+      <div class="breakdown-item">
+        <div class="breakdown-val">$98,160</div>
+        <div class="breakdown-label">Zombie apps</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-val">$15,600</div>
+        <div class="breakdown-label">Redundant tools</div>
+      </div>
+      <div class="breakdown-item">
+        <div class="breakdown-val">$13,200</div>
+        <div class="breakdown-label">Unused seats</div>
+      </div>
+    </div>
+
+    <div class="time-badge reveal d5">
+      ⚡ 3 tool calls · ~8 seconds · claude-opus-4-6
+    </div>
+  </div>
+
+  <div class="slide-num">10 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 11 — TECHNICAL DEPTH
+     ============================================= -->
+<section class="slide" id="slide-11">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+
+  <div class="tech-layout" style="position:relative;z-index:2;">
+    <p class="reveal" style="font-family:'Space Mono',monospace;font-size:var(--small-size);color:var(--cyan);letter-spacing:0.12em;text-transform:uppercase;">// Technical Stack</p>
+
+    <h2 class="reveal d1" style="font-family:'Clash Display','Space Grotesk',sans-serif;font-size:var(--h2-size);font-weight:700;letter-spacing:-0.02em;line-height:1.1;">
+      Built for real-world<br><span class="glow">production scale</span>
+    </h2>
+
+    <div class="tech-grid reveal d2">
+      <div class="tech-card">
+        <div class="tech-label">AI</div>
+        <div class="tech-name">Claude SDK</div>
+        <div class="tech-detail">@anthropic-ai/sdk · Opus 4.6 + Sonnet 4.6 + Haiku 4.5 · model-per-task strategy</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-label">Frontend</div>
+        <div class="tech-name">Next.js 15</div>
+        <div class="tech-detail">App Router · Server Components · React 19 · TypeScript strict mode</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-label">Database</div>
+        <div class="tech-name">Neon + Prisma</div>
+        <div class="tech-detail">PostgreSQL serverless · full relational schema · ORM type safety</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-label">Integrations</div>
+        <div class="tech-name">5 Data Sources</div>
+        <div class="tech-detail">Google Workspace · Plaid · AWS IAM · CSV · Slack notifications</div>
+      </div>
+    </div>
+
+    <div class="complexity-row reveal d3">
+      <div class="complexity-tag"><span class="dot"></span> Agentic tool-use loop (8 iterations max)</div>
+      <div class="complexity-tag"><span class="dot"></span> SSE streaming with NDJSON protocol</div>
+      <div class="complexity-tag"><span class="dot"></span> 8,000-token thinking budget</div>
+      <div class="complexity-tag"><span class="dot"></span> 3 parallel sub-agents + synthesis</div>
+      <div class="complexity-tag"><span class="dot"></span> NL → structured DB writes</div>
+      <div class="complexity-tag"><span class="dot"></span> Context-aware offboarding plans</div>
+    </div>
+  </div>
+
+  <div class="slide-num">11 / 12</div>
+</section>
+
+<!-- =============================================
+     SLIDE 12 — CTA
+     ============================================= -->
+<section class="slide" id="slide-12">
+  <div class="grid-bg"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="cta-content" style="position:relative;z-index:2;">
+    <div class="cta-eyebrow reveal">SaaS-Scrub · Hackathon 2026</div>
+
+    <h2 class="cta-headline reveal d1">
+      <span class="glow">Stop guessing.</span><br>Start scrubbing.
+    </h2>
+
+    <p class="cta-sub reveal d2">
+      Your SaaS stack is leaking money every day. SaaS-Scrub is the AI CFO that finds the waste, explains it in plain English, and tells you exactly what to do — powered by Claude Opus 4.6.
+    </p>
+
+    <div class="cta-buttons reveal d3">
+      <a href="https://saas-scrub.com" class="btn-primary">🚀 Try the Demo</a>
+      <a href="#" class="btn-secondary">📊 View on GitHub</a>
+    </div>
+
+    <div class="url-chip reveal d4">saas-scrub.com</div>
+
+    <div class="reveal d5" style="display:flex;gap:0.6rem;flex-wrap:wrap;justify-content:center;margin-top:clamp(0.5rem,1vw,1rem);">
+      <span class="tag">Claude Opus 4.6</span>
+      <span class="tag">Tool Use</span>
+      <span class="tag">Streaming</span>
+      <span class="tag mag">Multi-Agent</span>
+    </div>
+  </div>
+
+  <div class="slide-num">12 / 12</div>
+</section>
+
+</main>
+
+<script>
+// =============================================
+// PRESENTATION CONTROLLER
+// =============================================
+
+class PresentationController {
+  constructor() {
+    this.slides     = Array.from(document.querySelectorAll('.slide'));
+    this.dots       = Array.from(document.querySelectorAll('.nav-dot'));
+    this.progress   = document.getElementById('progress');
+    this.current    = 0;
+    this.total      = this.slides.length;
+    this.isScrolling = false;
+    this.counterDone = false;
+
+    this.init();
+  }
+
+  init() {
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault(); this.next();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault(); this.prev();
+      }
+    });
+
+    // Wheel navigation
+    let wheelTimer;
+    document.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      clearTimeout(wheelTimer);
+      wheelTimer = setTimeout(() => {
+        if (e.deltaY > 30) this.next();
+        else if (e.deltaY < -30) this.prev();
+      }, 50);
+    }, { passive: false });
+
+    // Touch navigation
+    let touchStartY = 0;
+    document.addEventListener('touchstart', (e) => {
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      const dy = touchStartY - e.changedTouches[0].clientY;
+      if (Math.abs(dy) > 50) {
+        if (dy > 0) this.next(); else this.prev();
+      }
+    }, { passive: true });
+
+    // Nav dots
+    this.dots.forEach((dot) => {
+      dot.addEventListener('click', () => {
+        this.goto(parseInt(dot.dataset.slide));
+      });
+    });
+
+    // Intersection Observer for reveal animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const slideEl  = entry.target;
+          const slideIdx = this.slides.indexOf(slideEl);
+          this.current = slideIdx;
+          this.updateUI();
+          this.triggerReveals(slideEl);
+
+          // Counter animation on slide 10 (index 9 — the $126,960 result slide)
+          if (slideIdx === 9 && !this.counterDone) {
+            this.counterDone = true;
+            setTimeout(() => this.animateCounter(), 500);
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+
+    this.slides.forEach((s) => observer.observe(s));
+
+    // Initial reveal
+    this.triggerReveals(this.slides[0]);
+    this.updateUI();
+  }
+
+  goto(idx) {
+    idx = Math.max(0, Math.min(idx, this.total - 1));
+    this.slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  next() { this.goto(this.current + 1); }
+  prev() { this.goto(this.current - 1); }
+
+  triggerReveals(slideEl) {
+    const revealEls = slideEl.querySelectorAll('.reveal');
+    revealEls.forEach((el) => {
+      // Reset first
+      el.classList.remove('visible');
+      void el.offsetWidth; // force reflow
+      requestAnimationFrame(() => el.classList.add('visible'));
+    });
+  }
+
+  updateUI() {
+    // Progress bar
+    const pct = ((this.current + 1) / this.total) * 100;
+    this.progress.style.width = pct + '%';
+
+    // Dots
+    this.dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === this.current);
+    });
+  }
+
+  animateCounter() {
+    const el     = document.getElementById('counter');
+    const target = 126960;
+    const dur    = 2000;
+    const start  = performance.now();
+
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / dur, 1);
+      const val = Math.round(easeOut(progress) * target);
+      el.textContent = '$' + val.toLocaleString();
+      if (progress < 1) requestAnimationFrame(step);
+      else el.textContent = '$126,960';
+    }
+
+    requestAnimationFrame(step);
+  }
+}
+
+// Boot
+document.addEventListener('DOMContentLoaded', () => {
+  new PresentationController();
+});
+</script>
+</body>
+</html>

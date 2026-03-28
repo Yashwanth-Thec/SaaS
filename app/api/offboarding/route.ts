@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireSession } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { generateOffboardingSteps } from "@/lib/offboarding";
+import { generateOffboardingSteps, type OffboardingStep } from "@/lib/offboarding";
+import { generateOffboardingPlan } from "@/lib/ai/offboarding-intelligence";
+import { randomUUID } from "crypto";
 
 export async function GET() {
   try {
@@ -26,13 +28,14 @@ export async function GET() {
 const schema = z.object({
   employeeId: z.string(),
   notes:      z.string().optional(),
+  useAI:      z.boolean().optional(),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const session = await requireSession();
     const body    = await req.json();
-    const { employeeId, notes } = schema.parse(body);
+    const { employeeId, notes, useAI } = schema.parse(body);
 
     // Verify employee belongs to org
     const employee = await db.employee.findFirst({
@@ -60,16 +63,49 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const steps = generateOffboardingSteps(
-      { name: employee.name, email: employee.email },
-      appAccess.map((a) => ({
-        appId:        a.app.id,
-        appName:      a.app.name,
-        category:     a.app.category,
-        monthlySpend: a.app.monthlySpend,
-        totalSeats:   a.app.totalSeats,
-      }))
-    );
+    let steps: OffboardingStep[];
+
+    if (useAI) {
+      try {
+        const aiSteps = await generateOffboardingPlan(employeeId, session.orgId, notes);
+        steps = aiSteps.map((s) => ({
+          id:           randomUUID(),
+          appId:        s.appId ?? "",
+          appName:      s.appName ?? "General",
+          category:     "other",
+          type:         "revoke_access" as const,
+          status:       "pending" as const,
+          priority:     s.priority === "critical" ? "high" as const : s.priority === "high" ? "high" as const : "medium" as const,
+          monthlySpend: 0,
+          notes:        `${s.title}: ${s.details}`,
+          completedAt:  null,
+          draftEmail:   null,
+        }));
+      } catch {
+        // Fallback to heuristic if AI fails
+        steps = generateOffboardingSteps(
+          { name: employee.name, email: employee.email },
+          appAccess.map((a) => ({
+            appId:        a.app.id,
+            appName:      a.app.name,
+            category:     a.app.category,
+            monthlySpend: a.app.monthlySpend,
+            totalSeats:   a.app.totalSeats,
+          }))
+        );
+      }
+    } else {
+      steps = generateOffboardingSteps(
+        { name: employee.name, email: employee.email },
+        appAccess.map((a) => ({
+          appId:        a.app.id,
+          appName:      a.app.name,
+          category:     a.app.category,
+          monthlySpend: a.app.monthlySpend,
+          totalSeats:   a.app.totalSeats,
+        }))
+      );
+    }
 
     const offboarding = await db.offboarding.create({
       data: {

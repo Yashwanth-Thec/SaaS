@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Users, CheckCircle2, Clock, AlertTriangle,
-  Search, X, ChevronRight, Zap, UserMinus,
+  Search, X, ChevronRight, Zap, UserMinus, Brain, Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -37,15 +37,16 @@ function ConfirmModal({
   onClose,
 }: {
   employee: Employee;
-  onConfirm: (notes: string) => void;
+  onConfirm: (notes: string, useAI: boolean) => void;
   onClose: () => void;
 }) {
-  const [notes, setNotes]   = useState("");
+  const [notes,   setNotes]   = useState("");
+  const [useAI,   setUseAI]   = useState(true);
   const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
     setLoading(true);
-    await onConfirm(notes);
+    await onConfirm(notes, useAI);
   }
 
   return (
@@ -123,12 +124,35 @@ function ConfirmModal({
           />
         </div>
 
+        {/* AI toggle */}
+        <div className="px-5 pt-4">
+          <button
+            onClick={() => setUseAI((v) => !v)}
+            className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+              useAI ? "bg-accent/8 border-accent/25" : "bg-elevated border-border"
+            }`}
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${useAI ? "bg-accent/20" : "bg-elevated border border-border"}`}>
+              {useAI ? <Sparkles className="w-4 h-4 text-accent" /> : <Brain className="w-4 h-4 text-muted" />}
+            </div>
+            <div>
+              <div className={`text-xs font-semibold ${useAI ? "text-accent" : "text-secondary"}`}>
+                {useAI ? "AI-Powered Plan (Claude)" : "Standard Plan"}
+              </div>
+              <div className="text-2xs text-muted mt-0.5">
+                {useAI ? "Claude generates app-specific steps based on this employee's roles" : "Uses standard heuristic step generator"}
+              </div>
+            </div>
+            <div className={`ml-auto w-4 h-4 rounded-full border-2 flex-shrink-0 ${useAI ? "bg-accent border-accent" : "border-muted"}`} />
+          </button>
+        </div>
+
         {/* Warning */}
-        <div className="mx-5 mt-4 flex items-start gap-2 p-3 rounded bg-warning/5 border border-warning/20">
+        <div className="mx-5 mt-3 flex items-start gap-2 p-3 rounded bg-warning/5 border border-warning/20">
           <AlertTriangle className="w-3.5 h-3.5 text-warning flex-shrink-0 mt-0.5" />
           <p className="text-xs text-secondary">
             This marks the employee as offboarded and creates a checklist.
-            Each step must be manually confirmed unless direct API integration is active.
+            {useAI ? " Claude will analyze their app roles and generate tailored steps." : " Each step must be manually confirmed unless direct API integration is active."}
           </p>
         </div>
 
@@ -140,8 +164,8 @@ function ConfirmModal({
             loading={loading}
             onClick={handleConfirm}
           >
-            <UserMinus className="w-4 h-4" />
-            Start Offboarding
+            {useAI ? <Sparkles className="w-4 h-4" /> : <UserMinus className="w-4 h-4" />}
+            {useAI ? "Start AI Offboarding" : "Start Offboarding"}
           </Button>
           <Button variant="secondary" onClick={onClose} disabled={loading}>
             Cancel
@@ -190,14 +214,14 @@ export function OffboardingClient({
   const inProgress = offboardings.filter((o) => o.status === "in_progress");
   const completed  = offboardings.filter((o) => o.status === "completed");
 
-  async function startOffboarding(notes: string) {
+  async function startOffboarding(notes: string, useAI: boolean) {
     if (!selected) return;
     setStarting(true);
     try {
       const res  = await fetch("/api/offboarding", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ employeeId: selected.id, notes }),
+        body:    JSON.stringify({ employeeId: selected.id, notes, useAI }),
       });
       const data = await res.json();
       if (!res.ok) { alert(data.error); setStarting(false); return; }

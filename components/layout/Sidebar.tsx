@@ -6,7 +6,7 @@ import {
   LayoutDashboard, AppWindow, Users, FileText,
   Plug, AlertTriangle, Settings, LogOut,
   Zap, TrendingDown, Shield, Brain, ShieldCheck,
-  ChevronLeft, ChevronRight, Sun, Moon,
+  ChevronLeft, ChevronRight, Sun, Moon, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -24,6 +24,7 @@ const NAV = [
   {
     section: "AI",
     items: [
+      { href: "/advisor",      icon: Sparkles,        label: "AI Advisor"     },
       { href: "/redundancy",   icon: Brain,           label: "AI Insights"    },
     ],
   },
