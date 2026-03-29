@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shield, TrendingDown, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -13,13 +13,30 @@ const SAVINGS_TICKER = [
   { company: "Vertex Systems", saved: "$8,400/mo",  action: "auto-offboarded 12 users" },
 ];
 
+const SSO_ERROR_MESSAGES: Record<string, string> = {
+  microsoft_not_configured: "Microsoft SSO is not configured. Please use email/password.",
+  sso_cancelled:            "Microsoft sign-in was cancelled.",
+  invalid_state:            "Invalid OAuth state. Please try again.",
+  sso_failed:               "Microsoft sign-in failed. Please try again or use email/password.",
+};
+
 export default function LoginPage() {
-  const router = useRouter();
+  const router       = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [tickerIdx, setTickerIdx] = useState(0);
+
+  // Show SSO errors from redirect params
+  useEffect(() => {
+    const ssoError = searchParams.get("error");
+    if (ssoError) {
+      setError(SSO_ERROR_MESSAGES[ssoError] ?? "Sign-in failed. Please try again.");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Rotate ticker every 3s
   useEffect(() => {
@@ -149,6 +166,29 @@ export default function LoginPage() {
           <div className="mb-8">
             <h1 className="font-display font-bold text-2xl text-primary">Welcome back</h1>
             <p className="text-secondary text-sm mt-1">Sign in to your workspace</p>
+          </div>
+
+          {/* Microsoft SSO */}
+          <a href="/api/auth/microsoft" className="block">
+            <button
+              type="button"
+              className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg border border-border bg-elevated hover:bg-surface hover:border-secondary transition-all text-sm font-medium text-primary"
+            >
+              {/* Microsoft logo */}
+              <svg width="18" height="18" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1"  y="1"  width="9" height="9" fill="#F25022" />
+                <rect x="11" y="1"  width="9" height="9" fill="#7FBA00" />
+                <rect x="1"  y="11" width="9" height="9" fill="#00A4EF" />
+                <rect x="11" y="11" width="9" height="9" fill="#FFB900" />
+              </svg>
+              Continue with Microsoft
+            </button>
+          </a>
+
+          <div className="relative flex items-center gap-3 my-2">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-2xs text-muted">or</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

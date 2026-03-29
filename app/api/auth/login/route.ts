@@ -18,7 +18,12 @@ export async function POST(req: Request) {
       where: { email: email.toLowerCase() },
     });
 
-    if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
+    // SSO-only accounts have no password hash — direct them to use Microsoft SSO
+    if (!user || !user.passwordHash) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    if (!(await bcrypt.compare(password, user.passwordHash))) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 

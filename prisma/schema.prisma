@@ -37,7 +37,8 @@ model User {
   id           String   @id @default(cuid())
   email        String   @unique
   name         String
-  passwordHash String
+  passwordHash String?  // null for SSO-only accounts
+  microsoftId  String?  @unique
   role         String   @default("member") // owner | admin | member
   avatarUrl    String?
   orgId        String

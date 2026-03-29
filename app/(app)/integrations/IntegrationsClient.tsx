@@ -57,14 +57,16 @@ const INTEGRATIONS = [
   {
     type:        "azure_ad",
     name:        "Microsoft Entra ID",
-    description: "Connect Azure Active Directory to pull users, groups, and Microsoft 365 license assignments.",
+    description: "Connect Azure Active Directory to pull users, enterprise app assignments, and sign-in activity from Microsoft 365.",
     logo:        "M",
     logoColor:   "#0078D4",
     category:    "Identity & Directory",
-    what:        ["Azure AD users → Employees", "M365 license assignments", "App registrations"],
-    envKeys:     ["AZURE_CLIENT_ID", "AZURE_CLIENT_SECRET", "AZURE_TENANT_ID"],
+    what:        ["Entra ID users → Employees", "Enterprise app assignments → SaaS Stack", "Sign-in activity → Utilization"],
+    envKeys:     ["MICROSOFT_CLIENT_ID", "MICROSOFT_CLIENT_SECRET", "MICROSOFT_TENANT_ID"],
     action:      "oauth",
-    comingSoon:  true,
+    connectUrl:  "/api/integrations/microsoft/auth",
+    syncUrl:     "/api/integrations/microsoft/sync",
+    docsHint:    "Requires a Microsoft Entra ID admin to grant consent for User.Read.All, Directory.Read.All, and AuditLog.Read.All.",
   },
   {
     type:        "plaid",
@@ -711,10 +713,12 @@ function IntegrationCard({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const ERROR_MESSAGES: Record<string, string> = {
-  google_not_configured: "Google Workspace requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.",
-  auth_failed:           "Google authentication failed. Check your credentials and try again.",
-  sync_failed:           "Google sync failed. Check server logs for details.",
-  missing_code:          "OAuth flow was cancelled or incomplete. Please try again.",
+  google_not_configured:    "Google Workspace requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in your .env file.",
+  microsoft_not_configured: "Microsoft Entra ID requires MICROSOFT_CLIENT_ID and MICROSOFT_CLIENT_SECRET in your .env file.",
+  auth_failed:              "Authentication failed. Check your credentials and try again.",
+  sync_failed:              "Sync failed. Check server logs for details.",
+  microsoft_sync_failed:    "Microsoft Entra ID sync failed. Ensure admin consent was granted for all required scopes.",
+  missing_code:             "OAuth flow was cancelled or incomplete. Please try again.",
 };
 
 export function IntegrationsClient({ connected, orgId }: Props) {
@@ -741,6 +745,13 @@ export function IntegrationsClient({ connected, orgId }: Props) {
       const apps      = searchParams.get("apps")      ?? "0";
       setToastType("success");
       setToast(`Google Workspace connected · ${employees} employees · ${apps} apps imported`);
+      setTimeout(() => setToast(null), 6000);
+      router.replace("/integrations");
+    } else if (success === "microsoft_connected") {
+      const employees = searchParams.get("employees") ?? "0";
+      const apps      = searchParams.get("apps")      ?? "0";
+      setToastType("success");
+      setToast(`Microsoft Entra ID connected · ${employees} employees · ${apps} apps imported`);
       setTimeout(() => setToast(null), 6000);
       router.replace("/integrations");
     }
