@@ -7,6 +7,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
+  // Gate: org must be active — owner bypasses for admin access
+  const orgFull = await db.organization.findUnique({ where: { id: user.org.id }, select: { status: true } });
+  if (orgFull?.status !== "active" && user.role !== "owner") redirect("/pending");
+
   const alertCount = await db.alert.count({
     where: { orgId: user.org.id, isDismissed: false, severity: "critical" },
   });

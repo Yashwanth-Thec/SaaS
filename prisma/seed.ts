@@ -97,10 +97,46 @@ function makeSteps(
 async function main() {
   console.log("🌱 Seeding SaaS-Scrub demo data...");
 
-  // ── Org & user ───────────────────────────────────────────────────────────────
+  // ── Owner org (you — full access, admin panel) ───────────────────────────────
+  const ownerOrg = await db.organization.upsert({
+    where: { slug: "saas-scrub-hq" }, update: { status: "active" },
+    create: { name: "SaaS-Scrub HQ", slug: "saas-scrub-hq", plan: "owner", status: "active" },
+  });
+  const ownerHash = await bcrypt.hash("changeme123", 12);
+  await db.user.upsert({
+    where: { email: "yashwanthnarayansb@gmail.com" }, update: {},
+    create: {
+      name: "Yashwanth",
+      email: "yashwanthnarayansb@gmail.com",
+      passwordHash: ownerHash,
+      role: "owner",
+      orgId: ownerOrg.id,
+    },
+  });
+  console.log("✓ Owner account: yashwanthnarayansb@gmail.com / changeme123");
+
+  // ── Test account (growth plan — for demos) ───────────────────────────────────
+  const testOrg = await db.organization.upsert({
+    where: { slug: "test-co" }, update: { status: "active" },
+    create: { name: "Test Co", slug: "test-co", domain: "test.com", plan: "growth", status: "active" },
+  });
+  const testHash = await bcrypt.hash("test1234", 12);
+  await db.user.upsert({
+    where: { email: "test@saas-scrub.com" }, update: {},
+    create: {
+      name: "Test User",
+      email: "test@saas-scrub.com",
+      passwordHash: testHash,
+      role: "admin",
+      orgId: testOrg.id,
+    },
+  });
+  console.log("✓ Test account: test@saas-scrub.com / test1234");
+
+  // ── Demo org (Acme Corp — full data, for prospect demos) ─────────────────────
   const org = await db.organization.upsert({
-    where: { slug: "acme-corp" }, update: {},
-    create: { name: "Acme Corp", slug: "acme-corp", domain: "acmecorp.io", plan: "growth" },
+    where: { slug: "acme-corp" }, update: { status: "active" },
+    create: { name: "Acme Corp", slug: "acme-corp", domain: "acmecorp.io", plan: "growth", status: "active" },
   });
 
   const hash = await bcrypt.hash("demo1234", 12);
@@ -108,6 +144,7 @@ async function main() {
     where: { email: "admin@acmecorp.io" }, update: {},
     create: { name: "Alex Chen", email: "admin@acmecorp.io", passwordHash: hash, role: "owner", orgId: org.id },
   });
+  console.log("✓ Demo account: admin@acmecorp.io / demo1234");
 
   // ── Employees ────────────────────────────────────────────────────────────────
   const employees = [];
