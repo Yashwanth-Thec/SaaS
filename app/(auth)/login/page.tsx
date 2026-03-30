@@ -1,8 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Shield, TrendingDown, Zap, Lock } from "lucide-react";
+import { Shield, Zap, Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
@@ -20,23 +20,26 @@ const SSO_ERROR_MESSAGES: Record<string, string> = {
   sso_failed:               "Microsoft sign-in failed. Please try again or use email/password.",
 };
 
-export default function LoginPage() {
-  const router       = useRouter();
+// Isolated component so useSearchParams is inside a Suspense boundary
+function SSOErrorReader({ onError }: { onError: (msg: string) => void }) {
   const searchParams = useSearchParams();
+  useEffect(() => {
+    const ssoError = searchParams.get("error");
+    if (ssoError) {
+      onError(SSO_ERROR_MESSAGES[ssoError] ?? "Sign-in failed. Please try again.");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return null;
+}
+
+export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [tickerIdx, setTickerIdx] = useState(0);
-
-  // Show SSO errors from redirect params
-  useEffect(() => {
-    const ssoError = searchParams.get("error");
-    if (ssoError) {
-      setError(SSO_ERROR_MESSAGES[ssoError] ?? "Sign-in failed. Please try again.");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Rotate ticker every 3s
   useEffect(() => {
@@ -69,6 +72,9 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-base flex">
+      <Suspense>
+        <SSOErrorReader onError={setError} />
+      </Suspense>
       {/* ── Left: branding panel ── */}
       <div className="hidden lg:flex flex-col w-[52%] bg-surface border-r border-border p-10 relative overflow-hidden">
         {/* Background grid */}
